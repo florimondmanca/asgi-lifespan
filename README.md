@@ -1,11 +1,11 @@
 # asgi-lifespan
 
-Lifespan protocol support for ASGI apps.
+Lifespan protocol support for ASGI apps and libraries.
 
 ## Features
 
-- Send lifespan events to an ASGI app using `LifespanContext` (_TODO_).
 - Add lifespan event handlers to an ASGI app using `LifespanMiddleware` (_TODO_).
+- Send lifespan events to an ASGI app using `LifespanContext` (_TODO_).
 - Support for [asyncio], [trio] and [curio] (provided by [anyio]).
 - Fully type-annotated.
 - 100% test coverage.
