@@ -26,7 +26,7 @@ app = LifespanMiddleware(app)
 
 @app.on_event("startup")
 async def startup():
-    print("Starting up"...)
+    print("Starting up...")
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -48,6 +48,14 @@ trio.run(main)
 
 import curio
 curio.run(main)
+```
+
+If you save the file as `main.py` and run `$ python main.py`, you will get the following output:
+
+```console
+Starting up...
+We're in!
+Shutting down...
 ```
 
 ## Installation
