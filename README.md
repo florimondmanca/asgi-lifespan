@@ -24,17 +24,36 @@
 ```python
 from asgi_lifespan import LifespanManager, LifespanMiddleware
 
-from myproject.asgi import app
+
+# We're using a "Hello, world" application here,
+# but any ASGI app will do.
+async def app(scope, receive, send):
+    assert scope["type"] == "http"
+    await send({
+        "type": "http.response.start",
+        "status": 200,
+        "headers": [
+            [b"content-type", b"text/plain"],
+        ]
+    })
+    await send({
+        "type": "http.response.body",
+        "body": b"Hello, world!",
+    })
+
 
 app = LifespanMiddleware(app)
+
 
 @app.on_event("startup")
 async def startup():
     print("Starting up...")
 
+
 @app.on_event("shutdown")
 async def shutdown():
     print("Shutting down...")
+
 
 async def main():
     async with LifespanManager(app):
