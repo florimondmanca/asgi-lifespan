@@ -9,7 +9,7 @@
 ## Features
 
 - Add lifespan event handlers to an ASGI app using `LifespanMiddleware` (_TODO_).
-- Send lifespan events to an ASGI app using `LifespanContext` (_TODO_).
+- Send lifespan events to an ASGI app using `LifespanManager` (_TODO_).
 - Support for [asyncio], [trio] and [curio] (provided by [anyio]).
 - Fully type-annotated.
 - 100% test coverage.
@@ -22,7 +22,7 @@
 ## Quickstart
 
 ```python
-from asgi_lifespan import LifespanMiddleware, LifespanContext
+from asgi_lifespan import LifespanManager, LifespanMiddleware
 
 from myproject.asgi import app
 
@@ -37,7 +37,7 @@ async def shutdown():
     print("Shutting down...")
 
 async def main():
-    async with LifespanContext(app):
+    async with LifespanManager(app):
         print("We're in!")
 ```
 
