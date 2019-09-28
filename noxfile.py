@@ -1,11 +1,12 @@
 import nox
 
+nox.options.reuse_existing_virtualenvs = True
 nox.options.stop_on_first_error = True
 
 source_files = ("asgi_lifespan", "tests", "setup.py", "noxfile.py")
 
 
-@nox.session(reuse_venv=True)
+@nox.session
 def lint(session: nox.sessions.Session) -> None:
     session.install("autoflake", "black", "flake8", "isort", "seed-isort-config")
 
@@ -19,7 +20,7 @@ def lint(session: nox.sessions.Session) -> None:
     check(session)
 
 
-@nox.session(reuse_venv=True)
+@nox.session
 def check(session: nox.sessions.Session) -> None:
     session.install(
         "black", "flake8", "flake8-bugbear", "flake8-comprehensions", "isort", "mypy"
