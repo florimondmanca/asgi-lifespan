@@ -161,7 +161,7 @@ async def main():
         # using an ASGI-capable test client here?
 ```
 
-> **Note**: if `LifespanManager` detects that the lifespan protocol isn't supported, a `LifespanNotSupported` exception is raised. To silence this exception, use `LifespanManager(app, ignore_unsupported=True)`.
+> **Note**: if `LifespanManager` detects that the lifespan protocol isn't supported, a `LifespanNotSupported` exception is raised.
 
 Save this script as `main.py`. You can run it with any of the supported async libraries:
 
@@ -278,7 +278,7 @@ More precisely:
 
 - On enter, start a `lifespan` request to `app` in the background, then send the `lifespan.startup` event and wait for the application to send `lifespan.startup.complete`.
 - On exit, send `lifespan.shutdown` event and wait for the application to send `lifespan.shutdown.complete`.
-- If an exception occurs during startup or in the body of the `async with` block, it bubbles up and no shutdown is performed.
+- If an exception occurs during startup, shutdown, or in the body of the `async with` block, it bubbles up and no shutdown is performed.
 
 **Example**
 
@@ -298,7 +298,9 @@ async with LifespanManager(app):
 
 **Raises**
 
-- `LifespanNotSupported`: if the application does not seem to support the lifespan protocol. This is detected by the application raising an exception during startup without having called `receive()` yet. For example, this may be because the application failed on a statement such as `assert scope["type"] == "http"`. (Rationale: if the app supported the lifespan protocol, it should have received the `lifespan.startup` ASGI message without failing.)
+- `LifespanNotSupported`: if the application does not seem to support the lifespan protocol. Based on the rationale that if the app supported the lifespan protocol then it would successfully receive the `lifespan.startup` ASGI event, unsupported lifespan protocol is detected in two situations:
+  - The application called `send()` before calling `receive()` for the first time.
+  - The application raised an exception during startup before making its first call to `receive()`. For example, this may be because the application failed on a statement such as `assert scope["type"] == "http"`.
 - `TimeoutError`: if startup or shutdown timed out.
 - `Exception`: any exception raised by the application (during startup, shutdown, or within the `async with` body) that does not indicate it does not support the lifespan protocol.
 
