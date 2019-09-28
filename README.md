@@ -8,6 +8,16 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
 
 [asgi]: https://asgi.readthedocs.io
 
+**Contents**
+
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Adding lifespan to ASGI apps](#adding-lifespan-to-asgi-apps)
+  - [Sending lifespan events](#sending-lifespan-events)
+- [API Reference](#api-reference)
+  - [`Lifespan`](#lifespan)
+
 ## Features
 
 - Create a lifespan-capable ASGI app with event handler registration support using `Lifespan`.
@@ -30,7 +40,7 @@ pip install asgi-lifespan
 
 ## Usage
 
-### Adding lifespan support to an ASGI app
+### Adding lifespan to ASGI apps
 
 ```python
 from asgi_lifespan import Lifespan, LifespanMiddleware
@@ -180,7 +190,7 @@ Shutting down...
 def __init__(self, on_startup: Callable = None, on_shutdown: Callable = None)
 ```
 
-A standalone [ASGI] app that implements the lifespan protocol and supports registering event handlers.
+A standalone ASGI app that implements the lifespan protocol and supports registering event handlers.
 
 **Example**
 
