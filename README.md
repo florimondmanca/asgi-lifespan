@@ -10,7 +10,7 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
 
 ## Features
 
-- Create a lifespan-capable ASGI app with event handler registration support using `Lifespan`. (_TODO_)
+- Create a lifespan-capable ASGI app with event handler registration support using `Lifespan`.
 - Add lifespan support to an ASGI app using `LifespanMiddleware`. (_TODO_)
 - Send lifespan events to an ASGI app (e.g. for testing) using `LifespanManager`. (_TODO_)
 - Support for [asyncio], [trio] and [curio] (provided by [anyio]).
@@ -171,6 +171,81 @@ Starting up...
 We're in!
 Shutting down...
 ```
+
+## API Reference
+
+### `Lifespan`
+
+```python
+def __init__(self, on_startup: Callable = None, on_shutdown: Callable = None)
+```
+
+A standalone [ASGI] app that implements the lifespan protocol and supports registering event handlers.
+
+**Example**
+
+```python
+lifespan = Lifespan()
+```
+
+**Parameters**
+
+- `on_startup` (`Callable`): an optional initial startup event handler.
+- `on_shutdown` (`Callable`): an optional initial shutdown event handler.
+
+#### `add_event_handler`
+
+```python
+def add_event_handler(self, event_type: str, func: Callable[[], None]) -> None
+```
+
+Register a callback to be called when the application starts up or shuts down.
+
+Imperative version of [`.on_event()`](#on_event).
+
+**Example**
+
+```python
+async def on_startup():
+    ...
+
+lifespan.add_event_handler("startup", on_startup)
+```
+
+**Parameters**
+
+- `event_type` (`str`): one of `"startup"` or `"shutdown"`.
+- `func` (`Callable`): a callback. Can be sync or async.
+
+#### `on_event`
+
+```python
+def on_event(self, event_type: str) -> Callable[[], None]
+```
+
+Register a callback to be called when the application starts up or shuts down.
+
+Decorator version of [`.add_event_handler()`](#add_event_handler).
+
+**Example**
+
+```python
+@lifespan.on_event("startup")
+async def on_startup():
+    ...
+```
+
+**Parameters**
+
+- `event_type` (`str`): one of `"startup"` or `"shutdown"`.
+
+#### `__call__`
+
+```python
+async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None
+```
+
+ASGI 3 implementation.
 
 ## License
 
