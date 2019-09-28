@@ -1,6 +1,8 @@
 -e .
 
+anyio
 black
+curio
 flake8
 flake8-bugbear
 flake8-comprehensions
@@ -9,3 +11,4 @@ mypy
 nox
 pytest
 pytest-cov
+trio
