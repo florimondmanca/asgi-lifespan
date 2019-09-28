@@ -1,6 +1,5 @@
 -e .
 
-anyio
 black
 curio
 flake8

@@ -23,7 +23,7 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
 
 - Create a lifespan-capable ASGI app with event handler registration support using `Lifespan`.
 - Add lifespan support to an ASGI app using `LifespanMiddleware`.
-- Send lifespan events to an ASGI app (e.g. for testing) using `LifespanManager`. (_TODO_)
+- Send lifespan events to an ASGI app (e.g. for testing) using `LifespanManager`.
 - Support for [asyncio], [trio] and [curio] (provided by [anyio]).
 - Fully type-annotated.
 - 100% test coverage.
@@ -298,6 +298,39 @@ async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None
 ```
 
 ASGI 3 implementation.
+
+### `LifespanManager`
+
+```python
+def __init__(self, app: Callable)
+```
+
+An [asynchronous context manager](https://docs.python.org/3/reference/datamodel.html#async-context-managers) that starts up an ASGI app on enter and shuts it down on exit.
+
+More precisely:
+
+- On enter, start a `lifespan` request to `app` in the background, then send the `lifespan.startup` event and wait for the application to send `lifespan.startup.complete`.
+- On exit, send `lifespan.shutdown` event and wait for the application to send `lifespan.shutdown.complete`.
+- If an exception occurs during startup or in the body of the `async with` block, it bubbles up and no shutdown is performed.
+
+**Example**
+
+```python
+async with LifespanManager(app):
+    # 'app' was started up.
+    ...
+
+# 'app' was shut down.
+```
+
+**Parameters**
+
+- `app` (`Callable`): an ASGI application.
+
+**Raises**
+
+- `LifespanNotSupported`: if the application does not seem to support the lifespan protocol. This is detected by the application raising an exception during startup without having called `receive()` yet. For example, this may be because the application failed on a statement such as `assert scope["type"] == "http"`. (Rationale: if the app supported the lifespan protocol, it should have received the `lifespan.startup` ASGI message without failing.)
+- `Exception`: any exception raised by the application (during startup, shutdown, or within the `async with` body) that does not indicate it does not support the lifespan protocol.
 
 ## License
 
