@@ -29,7 +29,7 @@ setup(
     name="asgi-lifespan",
     python_requires=">=3.6",
     version=get_version("asgi_lifespan"),
-    url="https://github.com/florimondmanca/asgi_lifespan",
+    url="https://github.com/florimondmanca/asgi-lifespan",
     license="MIT",
     description="Lifespan protocol support for ASGI apps and libraries.",
     long_description=get_long_description(),
