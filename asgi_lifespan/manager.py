@@ -64,11 +64,20 @@ async def _lifespan_manager_generator(
 
     scope = {"type": "lifespan"}
     receive_queue = anyio.create_queue(capacity=1)
+    receive_called = False
 
     async def receive() -> dict:
+        nonlocal receive_called
+        receive_called = True
         return await receive_queue.get()
 
     async def send(message: dict) -> None:
+        if not receive_called:
+            raise LifespanNotSupported(
+                "Application called send() before receive(). "
+                "Is it missing `assert scope['type'] == 'http'` or similar?"
+            )
+
         if message["type"] == "lifespan.startup.complete":
             await startup_complete.set()
         elif message["type"] == "lifespan.shutdown.complete":
@@ -81,10 +90,14 @@ async def _lifespan_manager_generator(
             if isinstance(exc, anyio.get_cancelled_exc_class()):
                 # Stay out of the way of task cancellation.
                 raise
-            if not receive_queue.empty():
-                # App failed before a first call to `receive()`, probably
-                # because of something like `assert scope["type"] == "http"`.
-                raise LifespanNotSupported() from exc
+            if not receive_called:
+                raise LifespanNotSupported(
+                    "Application failed before making its first call to 'receive()'. "
+                    "We expect this to originate from a statement similar to "
+                    "`assert scope['type'] == 'type'`. "
+                    "If that is not the case, then this crash is unexpected and "
+                    "there is probably more debug output in the cause traceback."
+                ) from exc
             raise
 
     async with anyio.create_task_group() as group:
