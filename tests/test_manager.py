@@ -1,11 +1,10 @@
+import contextlib
 import typing
 
 import anyio
 import pytest
 
 from asgi_lifespan import Lifespan, LifespanManager, LifespanNotSupported
-
-from .compat import nullcontext
 
 
 @pytest.mark.anyio
@@ -49,7 +48,10 @@ async def test_lifespan_manager(
 
         await lifespan(scope, _receive, _send)
 
-    with pytest.raises(startup_exception) if startup_exception else nullcontext():
+    with contextlib.ExitStack() as stack:
+        if startup_exception is not None:
+            stack.enter_context(pytest.raises(startup_exception))
+
         async with LifespanManager(app) as ctx:
             # NOTE: this block will not get executed if in case of startup exception.
             assert ctx is None

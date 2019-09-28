@@ -1,10 +1,9 @@
+import contextlib
 import typing
 
 import pytest
 
 from asgi_lifespan import Lifespan
-
-from .compat import nullcontext
 
 Log = typing.List[typing.Union[str, dict]]
 
@@ -66,7 +65,9 @@ async def test_lifespan_app(startup_failed: bool,) -> None:
     lifespan = build_lifespan(log=log, startup_failed=startup_failed)
     scope, receive, send = build_asgi_arguments(log=log, messages=messages)
 
-    with pytest.raises(RuntimeError) if startup_failed else nullcontext():
+    with contextlib.ExitStack() as stack:
+        if startup_failed:
+            stack.enter_context(pytest.raises(RuntimeError))
         await lifespan(scope, receive, send)
 
     if startup_failed:
