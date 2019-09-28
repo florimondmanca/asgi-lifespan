@@ -6,6 +6,8 @@
 
 Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en/latest/specs/lifespan.html) support to [ASGI] apps and libraries.
 
+**Note**: This project is in an "alpha" stage.
+
 [asgi]: https://asgi.readthedocs.io
 
 **Contents**
