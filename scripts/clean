@@ -1,0 +1,18 @@
+#!/bin/sh -e
+
+export PACKAGE="asgi_lifespan"
+
+if [ -d 'dist' ] ; then
+    rm -r dist
+fi
+
+if [ -d 'htmlcov' ] ; then
+    rm -r htmlcov
+fi
+
+if [ -d 'asgi_lifespan.egg-info' ] ; then
+    rm -r asgi_lifespan.egg-info
+fi
+
+find ${PACKAGE} -type f -name "*.py[co]" -delete
+find ${PACKAGE} -type d -name __pycache__ -delete
