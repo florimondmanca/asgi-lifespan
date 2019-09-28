@@ -7,23 +7,19 @@ branches:
   only:
     - master
 
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8-dev"
+
 jobs:
   include:
     - python: 3.7
-      env: NOX_SESSION=check
-
-    - python: 3.6
-      env: NOX_SESSION=test-3.6
-    - python: 3.7
-      env: NOX_SESSION=test-3.7
-    - python: 3.8-dev
-      env: NOX_SESSION=test-3.8
-
-install:
-  - pip install --upgrade nox
+      install: pip install --upgrade nox
+      script: nox -s check
 
 script:
-  - nox -s ${NOX_SESSION}
+  - scripts/test
 
 after_script:
   - if [ -f .coverage ]; then
