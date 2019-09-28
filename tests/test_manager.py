@@ -1,5 +1,6 @@
 import typing
 
+import anyio
 import pytest
 
 from asgi_lifespan import Lifespan, LifespanManager, LifespanNotSupported
@@ -65,3 +66,46 @@ async def test_lifespan_manager(
             "lifespan.startup.complete",
             "lifespan.shutdown.complete",
         ]
+
+
+async def slow_startup(
+    scope: dict, receive: typing.Callable, send: typing.Callable
+) -> None:
+    message = await receive()
+    assert message["type"] == "lifespan.startup"
+    await anyio.sleep(0.05)
+    # ...
+
+
+async def slow_shutdown(
+    scope: dict, receive: typing.Callable, send: typing.Callable
+) -> None:
+    message = await receive()
+    assert message["type"] == "lifespan.startup"
+    await send({"type": "lifespan.startup.complete"})
+
+    message = await receive()
+    assert message["type"] == "lifespan.shutdown"
+    await anyio.sleep(0.05)
+    # ...
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
+async def test_lifespan_timeout(app: typing.Callable) -> None:
+    async with anyio.move_on_after(0.02) as cancel_scope:
+        with pytest.raises(TimeoutError):
+            async with LifespanManager(
+                app, startup_timeout=0.01, shutdown_timeout=0.01
+            ):
+                pass
+    assert not cancel_scope.cancel_called
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
+async def test_lifespan_no_timeout(app: typing.Callable) -> None:
+    async with anyio.move_on_after(0.02) as cancel_scope:
+        async with LifespanManager(app, startup_timeout=None, shutdown_timeout=None):
+            pass
+    assert cancel_scope.cancel_called
