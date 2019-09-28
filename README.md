@@ -22,7 +22,9 @@ Modular ASGI components for adding [lifespan protocol](https://asgi.readthedocs.
 
 ## Installation
 
-Soon available on PyPI.
+```bash
+pip install asgi-lifespan
+```
 
 ## Usage
 
