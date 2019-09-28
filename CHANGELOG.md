@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## 0.1.0 (September 28, 2019)
+
+### Added
+
+- Add `Lifespan`, an ASGI app implementing the lifespan protocol with event handler registration support. (Pull #7)
+
 ## 0.0.2 (September 28, 2019)
 
 ### Fixed
