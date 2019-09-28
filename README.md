@@ -302,7 +302,12 @@ ASGI 3 implementation.
 ### `LifespanManager`
 
 ```python
-def __init__(self, app: Callable)
+def __init__(
+    self,
+    app: Callable,
+    startup_timeout: Optional[float] = 5,
+    shutdown_timeout: Optional[float] = 5,
+)
 ```
 
 An [asynchronous context manager](https://docs.python.org/3/reference/datamodel.html#async-context-managers) that starts up an ASGI app on enter and shuts it down on exit.
@@ -326,10 +331,13 @@ async with LifespanManager(app):
 **Parameters**
 
 - `app` (`Callable`): an ASGI application.
+- `startup_timeout` (`Optional[float]`, defaults to 5): maximum number of seconds to wait for the application to startup. Use `None` for no timeout.
+- `shutdown_timeout` (`Optional[float]`, defaults to 5): maximum number of seconds to wait for the application to shutdown. Use `None` for no timeout.
 
 **Raises**
 
 - `LifespanNotSupported`: if the application does not seem to support the lifespan protocol. This is detected by the application raising an exception during startup without having called `receive()` yet. For example, this may be because the application failed on a statement such as `assert scope["type"] == "http"`. (Rationale: if the app supported the lifespan protocol, it should have received the `lifespan.startup` ASGI message without failing.)
+- `TimeoutError`: if startup or shutdown timed out.
 - `Exception`: any exception raised by the application (during startup, shutdown, or within the `async with` body) that does not indicate it does not support the lifespan protocol.
 
 ## License

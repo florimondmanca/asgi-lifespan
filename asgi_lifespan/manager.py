@@ -9,19 +9,30 @@ from .exceptions import LifespanNotSupported
 
 
 class LifespanManager:
-    def __init__(self, app: typing.Callable) -> None:
+    def __init__(
+        self,
+        app: typing.Callable,
+        startup_timeout: typing.Optional[float] = 5,
+        shutdown_timeout: typing.Optional[float] = 5,
+    ) -> None:
         self.app = app
+        self.startup_timeout = startup_timeout
+        self.shutdown_timeout = shutdown_timeout
         self._exit_stack = AsyncExitStack()
 
     async def __aenter__(self) -> None:
         await self._exit_stack.__aenter__()
 
+        agen = _lifespan_manager_generator(
+            self.app,
+            startup_timeout=self.startup_timeout,
+            shutdown_timeout=self.shutdown_timeout,
+        )
+
         # Ensure the async generator used by @asynccontextmanager is properly
         # closed on exit by wrapping it in anyio.finalize().
         # This prevents a warning raised by curio in particular.
-        agen = await self._exit_stack.enter_async_context(
-            anyio.finalize(_lifespan_manager_generator(self.app))
-        )
+        agen = await self._exit_stack.enter_async_context(anyio.finalize(agen))
         assert inspect.isasyncgen(agen)
 
         @asynccontextmanager
@@ -44,7 +55,9 @@ class LifespanManager:
 
 
 async def _lifespan_manager_generator(
-    app: typing.Callable
+    app: typing.Callable,
+    startup_timeout: typing.Optional[float],
+    shutdown_timeout: typing.Optional[float],
 ) -> typing.AsyncIterator[None]:
     startup_complete = anyio.create_event()
     shutdown_complete = anyio.create_event()
@@ -65,6 +78,9 @@ async def _lifespan_manager_generator(
         try:
             await app(scope, receive, send)
         except Exception as exc:
+            if isinstance(exc, anyio.get_cancelled_exc_class()):
+                # Stay out of the way of task cancellation.
+                raise
             if not receive_queue.empty():
                 # App failed before a first call to `receive()`, probably
                 # because of something like `assert scope["type"] == "http"`.
@@ -73,8 +89,13 @@ async def _lifespan_manager_generator(
 
     async with anyio.create_task_group() as group:
         await group.spawn(run_app)
+
         await receive_queue.put({"type": "lifespan.startup"})
-        await startup_complete.wait()
+        async with anyio.fail_after(startup_timeout):
+            await startup_complete.wait()
+
         yield
+
         await receive_queue.put({"type": "lifespan.shutdown"})
-        await shutdown_complete.wait()
+        async with anyio.fail_after(shutdown_timeout):
+            await shutdown_complete.wait()
