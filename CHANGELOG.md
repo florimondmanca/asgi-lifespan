@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## 0.4.1 (September 29, 2019)
+
+### Fixed
+
+- Improve error handling in `LifespanManager` (Pull #11):
+  - Exceptions raised in the context manager body or during shutdown are now properly propagated.
+  - Unsupported lifespan is now also detected when the app calls `send()` before calling having called `receive()` at least once.
+
 ## 0.4.0 (September 29, 2019)
 
 - Enter Alpha development status.
