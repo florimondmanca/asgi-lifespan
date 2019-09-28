@@ -16,8 +16,9 @@ def get_version(package: str) -> str:
 
 
 def get_long_description() -> str:
-    with open("README.md", encoding="utf8") as f:
-        return f.read()
+    with open("README.md", encoding="utf8") as readme:
+        with open("CHANGELOG.md", encoding="utf8") as changelog:
+            return readme.read() + "\n\n" + changelog.read()
 
 
 def get_packages(package: str) -> typing.List[str]:
