@@ -27,7 +27,7 @@ def check(session: nox.sessions.Session) -> None:
 
     session.run("black", "--check", "--diff", "--target-version=py36", *source_files)
     session.run("flake8", *source_files)
-    session.run("mypy", "asgi_lifespan")
+    session.run("mypy", *source_files)
     session.run(
         "isort",
         "--check",
