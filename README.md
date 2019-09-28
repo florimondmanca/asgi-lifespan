@@ -20,6 +20,10 @@ Modular ASGI components for adding [lifespan protocol](https://asgi.readthedocs.
 [curio]: https://anyio.readthedocs.io/en/latest/
 [anyio]: https://anyio.readthedocs.io
 
+## Installation
+
+Soon available on PyPI.
+
 ## Usage
 
 ### Adding lifespan support to an ASGI app
@@ -55,14 +59,19 @@ def more_shutdown():
 lifespan.add_event_handler("shutdown", more_shutdown)
 
 
-# Example ASGI app. We're using a "Hello, world" application
-# here, but any ASGI-compliant callable will do.
+# Example ASGI app. We're using a "Hello, world" application here,
+# but any ASGI-compliant callable will do.
 
 async def app(scope, receive, send):
     assert scope["type"] == "http"
     output = b"Hello, World!"
-    headers = [(b"content-type", "text/plain"), (b"content-length", str(len(output)))]
-    await send({"type": "http.response.start", "status": 200, "headers": headers})
+    headers = [
+        (b"content-type", "text/plain"),
+        (b"content-length", str(len(output)))
+    ]
+    await send(
+        {"type": "http.response.start", "status": 200, "headers": headers}
+    )
     await send({"type": "http.response.body", "body": output})
 
 
@@ -90,7 +99,7 @@ Starting up...
 INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
-Stop the server using `Ctrl+C` — you should get the following output:
+Stop the server using `Ctrl+C`, and you should get the following output:
 
 ```console
 INFO: Shutting down
@@ -102,7 +111,7 @@ INFO: Finished server process [2407]
 
 ### Sending lifespan events
 
-To programmatically send ASGI lifespan events to an ASGI app, use `LifespanManager`. This is particularly useful for testing and/or making requests using ASGI-capable HTTP client such as [HTTPX].
+To programmatically send ASGI lifespan events to an ASGI app, use `LifespanManager`. This is particularly useful for testing and/or making requests using an ASGI-capable HTTP client such as [HTTPX].
 
 [httpx]: https://www.encode.io/httpx/
 
@@ -111,8 +120,9 @@ from asgi_lifespan import Lifespan, LifespanManager
 
 
 # Example lifespan-capable ASGI app.
-# Doesn't need to be a `Lifespan` instance -- any other ASGI app
-# implementing the lifespan protocol will do.
+# (Doesn't need to be a `Lifespan` instance.
+# Any ASGI app implementing the lifespan protocol will do.)
+
 app = Lifespan()
 
 
@@ -133,7 +143,7 @@ async def main():
         # using an ASGI-capable test client here?
 ```
 
-> **Note**: if `LifespanManager` detects that the lifespan protocol isn't supported, the `LifespanNotSupported` exception is raised. To silence this exception, use `LifespanManager(app, ignore_unsupported=True)`.
+> **Note**: if `LifespanManager` detects that the lifespan protocol isn't supported, a `LifespanNotSupported` exception is raised. To silence this exception, use `LifespanManager(app, ignore_unsupported=True)`.
 
 Save this script as `main.py`. You can run it with any of the supported async libraries:
 
@@ -150,17 +160,13 @@ import curio
 curio.run(main)
 ```
 
-By running `$ python main.py`, you will get the following output:
+Run `$ python main.py` in your terminal, and you should get the following output:
 
 ```console
 Starting up...
 We're in!
 Shutting down...
 ```
-
-## Installation
-
-Soon available on PyPI.
 
 ## License
 
