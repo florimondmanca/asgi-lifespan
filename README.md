@@ -17,11 +17,12 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
   - [Sending lifespan events](#sending-lifespan-events)
 - [API Reference](#api-reference)
   - [`Lifespan`](#lifespan)
+  - [`LifespanMiddleware`](#lifespanmiddleware)
 
 ## Features
 
 - Create a lifespan-capable ASGI app with event handler registration support using `Lifespan`.
-- Add lifespan support to an ASGI app using `LifespanMiddleware`. (_TODO_)
+- Add lifespan support to an ASGI app using `LifespanMiddleware`.
 - Send lifespan events to an ASGI app (e.g. for testing) using `LifespanManager`. (_TODO_)
 - Support for [asyncio], [trio] and [curio] (provided by [anyio]).
 - Fully type-annotated.
@@ -248,6 +249,47 @@ async def on_startup():
 **Parameters**
 
 - `event_type` (`str`): one of `"startup"` or `"shutdown"`.
+
+#### `__call__`
+
+```python
+async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None
+```
+
+ASGI 3 implementation.
+
+### `LifespanMiddleware`
+
+```python
+def __init__(self, app: Callable, lifespan: Callable)
+```
+
+An ASGI middleware that forwards "lifespan" requests to `lifespan` and anything else to `app`.
+
+**Example**
+
+```python
+app = LifespanMiddleware(app, lifespan=lifespan)
+```
+
+This is roughly equivalent to:
+
+```python
+default = app
+
+async def app(scope, receive, send):
+    if scope["type"] == "lifespan":
+        await lifespan(scope, receive, send)
+    else:
+        await default(scope, receive, send)
+```
+
+**Parameters**
+
+- `app` (`Callable`): an ASGI application to be wrapped by the middleware.
+- `lifespan` (`Callable`): an ASGI application.
+  - Can be a [`Lifespan`](#lifespan) instance, but that is not mandatory.
+  - This will only be given `"lifespan"` ASGI scope types, so it is safe (and recommended) to use `assert scope["type"] == "lifespan"` in custom implementations.
 
 #### `__call__`
 
