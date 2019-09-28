@@ -17,6 +17,7 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
   - [Sending lifespan events](#sending-lifespan-events)
 - [API Reference](#api-reference)
   - [`Lifespan`](#lifespan)
+  - [`LifespanManager`](#lifespanmanager)
   - [`LifespanMiddleware`](#lifespanmiddleware)
 
 ## Features
@@ -258,47 +259,6 @@ async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None
 
 ASGI 3 implementation.
 
-### `LifespanMiddleware`
-
-```python
-def __init__(self, app: Callable, lifespan: Callable)
-```
-
-An ASGI middleware that forwards "lifespan" requests to `lifespan` and anything else to `app`.
-
-**Example**
-
-```python
-app = LifespanMiddleware(app, lifespan=lifespan)
-```
-
-This is roughly equivalent to:
-
-```python
-default = app
-
-async def app(scope, receive, send):
-    if scope["type"] == "lifespan":
-        await lifespan(scope, receive, send)
-    else:
-        await default(scope, receive, send)
-```
-
-**Parameters**
-
-- `app` (`Callable`): an ASGI application to be wrapped by the middleware.
-- `lifespan` (`Callable`): an ASGI application.
-  - Can be a [`Lifespan`](#lifespan) instance, but that is not mandatory.
-  - This will only be given `"lifespan"` ASGI scope types, so it is safe (and recommended) to use `assert scope["type"] == "lifespan"` in custom implementations.
-
-#### `__call__`
-
-```python
-async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None
-```
-
-ASGI 3 implementation.
-
 ### `LifespanManager`
 
 ```python
@@ -339,6 +299,47 @@ async with LifespanManager(app):
 - `LifespanNotSupported`: if the application does not seem to support the lifespan protocol. This is detected by the application raising an exception during startup without having called `receive()` yet. For example, this may be because the application failed on a statement such as `assert scope["type"] == "http"`. (Rationale: if the app supported the lifespan protocol, it should have received the `lifespan.startup` ASGI message without failing.)
 - `TimeoutError`: if startup or shutdown timed out.
 - `Exception`: any exception raised by the application (during startup, shutdown, or within the `async with` body) that does not indicate it does not support the lifespan protocol.
+
+### `LifespanMiddleware`
+
+```python
+def __init__(self, app: Callable, lifespan: Callable)
+```
+
+An ASGI middleware that forwards "lifespan" requests to `lifespan` and anything else to `app`.
+
+**Example**
+
+```python
+app = LifespanMiddleware(app, lifespan=lifespan)
+```
+
+This is roughly equivalent to:
+
+```python
+default = app
+
+async def app(scope, receive, send):
+    if scope["type"] == "lifespan":
+        await lifespan(scope, receive, send)
+    else:
+        await default(scope, receive, send)
+```
+
+**Parameters**
+
+- `app` (`Callable`): an ASGI application to be wrapped by the middleware.
+- `lifespan` (`Callable`): an ASGI application.
+  - Can be a [`Lifespan`](#lifespan) instance, but that is not mandatory.
+  - This will only be given `"lifespan"` ASGI scope types, so it is safe (and recommended) to use `assert scope["type"] == "lifespan"` in custom implementations.
+
+#### `__call__`
+
+```python
+async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None
+```
+
+ASGI 3 implementation.
 
 ## License
 
