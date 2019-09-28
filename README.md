@@ -4,7 +4,9 @@
 [![Coverage](https://codecov.io/gh/florimondmanca/asgi-lifespan/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-lifespan)
 [![Package version](https://badge.fury.io/py/asgi-lifespan.svg)](https://pypi.org/project/asgi-lifespan)
 
-Modular ASGI components for adding [lifespan protocol](https://asgi.readthedocs.io/en/latest/specs/lifespan.html) support to ASGI apps and libraries.
+Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en/latest/specs/lifespan.html) support to [ASGI] apps and libraries.
+
+[asgi]: https://asgi.readthedocs.io
 
 ## Features
 
