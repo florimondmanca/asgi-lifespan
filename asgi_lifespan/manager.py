@@ -2,7 +2,8 @@ import inspect
 import typing
 from types import TracebackType
 
-import anyio
+from .concurrency.auto import sniff_concurrency_backend
+from .concurrency.base import BaseConcurrencyBackend
 
 from .compat import AsyncExitStack, asynccontextmanager
 from .exceptions import LifespanNotSupported
@@ -14,10 +15,14 @@ class LifespanManager:
         app: typing.Callable,
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
+        concurrency_backend: BaseConcurrencyBackend = None,
     ) -> None:
+        if concurrency_backend is None:
+            concurrency_backend = sniff_concurrency_backend()
         self.app = app
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
+        self.concurrency_backend = concurrency_backend
         self._exit_stack = AsyncExitStack()
 
     async def __aenter__(self) -> None:
@@ -27,12 +32,15 @@ class LifespanManager:
             self.app,
             startup_timeout=self.startup_timeout,
             shutdown_timeout=self.shutdown_timeout,
+            concurrency_backend=self.concurrency_backend,
         )
 
         # Ensure the async generator used by @asynccontextmanager is properly
-        # closed on exit by wrapping it in anyio.finalize().
+        # closed on exit by wrapping it in 'finalize()'.
         # This prevents a warning raised by curio in particular.
-        agen = await self._exit_stack.enter_async_context(anyio.finalize(agen))
+        agen = await self._exit_stack.enter_async_context(
+            self.concurrency_backend.finalize(agen)
+        )
         assert inspect.isasyncgen(agen)
 
         @asynccontextmanager
@@ -58,12 +66,13 @@ async def _lifespan_manager_generator(
     app: typing.Callable,
     startup_timeout: typing.Optional[float],
     shutdown_timeout: typing.Optional[float],
+    concurrency_backend: BaseConcurrencyBackend,
 ) -> typing.AsyncIterator[None]:
-    startup_complete = anyio.create_event()
-    shutdown_complete = anyio.create_event()
+    startup_complete = concurrency_backend.create_event()
+    shutdown_complete = concurrency_backend.create_event()
 
     scope = {"type": "lifespan"}
-    receive_queue = anyio.create_queue(capacity=1)
+    receive_queue = concurrency_backend.create_queue(capacity=1)
     receive_called = False
 
     async def receive() -> dict:
@@ -87,7 +96,7 @@ async def _lifespan_manager_generator(
         try:
             await app(scope, receive, send)
         except Exception as exc:
-            if isinstance(exc, anyio.get_cancelled_exc_class()):
+            if isinstance(exc, concurrency_backend.get_cancelled_exception_class()):
                 # Stay out of the way of task cancellation.
                 raise
             if not receive_called:
@@ -100,15 +109,19 @@ async def _lifespan_manager_generator(
                 ) from exc
             raise
 
-    async with anyio.create_task_group() as group:
-        await group.spawn(run_app)
+    async with concurrency_backend.create_task_group() as group:
+        group.start_soon(run_app)
 
         await receive_queue.put({"type": "lifespan.startup"})
-        async with anyio.fail_after(startup_timeout):
+        async with concurrency_backend.move_on_after(startup_timeout) as cancel_scope:
             await startup_complete.wait()
+        if cancel_scope.timeout_expired:
+            raise TimeoutError
 
         yield
 
         await receive_queue.put({"type": "lifespan.shutdown"})
-        async with anyio.fail_after(shutdown_timeout):
+        async with concurrency_backend.move_on_after(shutdown_timeout) as cancel_scope:
             await shutdown_complete.wait()
+        if cancel_scope.timeout_expired:
+            raise TimeoutError
