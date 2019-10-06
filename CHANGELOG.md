@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## 0.4.2 (October 6, 2019)
+
+### Fixed
+
+- Ensure `py.typed` is bundled with the package so that type checkers can detect type annotations. (Pull #16)
+
 ## 0.4.1 (September 29, 2019)
 
 ### Fixed
