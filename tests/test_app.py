@@ -56,9 +56,9 @@ def build_asgi_arguments(
     return scope, receive, send
 
 
-@pytest.mark.anyio
+@pytest.mark.usefixtures("concurrency_backend")
 @pytest.mark.parametrize("startup_failed", (False, True))
-async def test_lifespan_app(startup_failed: bool,) -> None:
+async def test_lifespan_app(startup_failed: bool) -> None:
     log: Log = []
     messages = [{"type": "lifespan.shutdown"}, {"type": "lifespan.startup"}]
 

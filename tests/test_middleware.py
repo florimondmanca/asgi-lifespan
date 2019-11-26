@@ -5,7 +5,7 @@ import pytest
 from asgi_lifespan import LifespanMiddleware
 
 
-@pytest.mark.anyio
+@pytest.mark.usefixtures("concurrency_backend")
 async def test_lifespan_middleware() -> None:
     scopes: typing.List[dict] = []
 

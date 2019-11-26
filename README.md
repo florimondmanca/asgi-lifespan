@@ -27,14 +27,12 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
 - Create a lifespan-capable ASGI app with event handler registration support using `Lifespan`.
 - Add lifespan support to an ASGI app using `LifespanMiddleware`.
 - Send lifespan events to an ASGI app (e.g. for testing) using `LifespanManager`.
-- Support for [asyncio], [trio] and [curio] (provided by [anyio]).
+- Support for [asyncio] and [trio].
 - Fully type-annotated.
 - 100% test coverage.
 
 [asyncio]: https://docs.python.org/3/library/asyncio
-[trio]: https://anyio.readthedocs.io/en/latest/
-[curio]: https://anyio.readthedocs.io/en/latest/
-[anyio]: https://anyio.readthedocs.io
+[trio]: https://trio.readthedocs.io
 
 ## Installation
 
