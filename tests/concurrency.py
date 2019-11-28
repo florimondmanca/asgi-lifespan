@@ -19,12 +19,9 @@ async def sleep(concurrency_backend: ConcurrencyBackend, seconds: int) -> None:
     raise NotImplementedError  # pragma: no cover
 
 
+@sleep.register(AsyncioBackend)
 async def _sleep_asyncio(concurrency_backend: ConcurrencyBackend, seconds: int) -> None:
     await asyncio.sleep(seconds)
-
-
-sleep.register(None.__class__, _sleep_asyncio)
-sleep.register(AsyncioBackend, _sleep_asyncio)
 
 
 @sleep.register(TrioBackend)
@@ -41,6 +38,7 @@ async def run_and_move_on_after(
     raise NotImplementedError  # pragma: no cover
 
 
+@run_and_move_on_after.register(AsyncioBackend)
 async def _run_and_move_on_after_asyncio(
     concurrency_backend: ConcurrencyBackend,
     seconds: typing.Optional[float],
@@ -52,10 +50,6 @@ async def _run_and_move_on_after_asyncio(
         return True
     else:
         raise NotImplementedError  # pragma: no cover
-
-
-run_and_move_on_after.register(None.__class__, _run_and_move_on_after_asyncio)
-run_and_move_on_after.register(AsyncioBackend, _run_and_move_on_after_asyncio)
 
 
 @run_and_move_on_after.register(TrioBackend)

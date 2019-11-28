@@ -4,7 +4,7 @@ from types import TracebackType
 
 from .compat import AsyncExitStack, asynccontextmanager
 from .concurrency.base import ConcurrencyBackend
-from .concurrency.defaults import get_default_concurrency_backend
+from .concurrency.auto import detect_concurrency_backend
 from .exceptions import LifespanNotSupported
 
 
@@ -14,12 +14,9 @@ class LifespanManager:
         app: typing.Callable,
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
-        concurrency_backend: ConcurrencyBackend = None,
     ) -> None:
-        if concurrency_backend is None:
-            concurrency_backend = get_default_concurrency_backend()
         self.app = app
-        self.concurrency_backend = concurrency_backend
+        self.concurrency_backend = detect_concurrency_backend()
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
         self._exit_stack = AsyncExitStack()

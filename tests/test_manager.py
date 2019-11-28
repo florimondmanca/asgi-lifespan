@@ -1,15 +1,15 @@
 import contextlib
-import functools
 import typing
 
 import pytest
 
 from asgi_lifespan import Lifespan, LifespanManager, LifespanNotSupported
-from asgi_lifespan.concurrency.base import ConcurrencyBackend
+from asgi_lifespan.concurrency.auto import detect_concurrency_backend
 
 from . import concurrency
 
 
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("startup_exception", (None, ValueError))
 @pytest.mark.parametrize("body_exception", (None, ValueError))
 @pytest.mark.parametrize("shutdown_exception", (None, ValueError))
@@ -17,7 +17,6 @@ async def test_lifespan_manager(
     startup_exception: typing.Optional[typing.Type[BaseException]],
     body_exception: typing.Optional[typing.Type[BaseException]],
     shutdown_exception: typing.Optional[typing.Type[BaseException]],
-    concurrency_backend: ConcurrencyBackend,
 ) -> None:
     lifespan = Lifespan()
 
@@ -28,7 +27,6 @@ async def test_lifespan_manager(
         @lifespan.on_event("startup")
         async def startup() -> None:
             assert startup_exception is not None  # Please mypy.
-            print("raising exception")
             raise startup_exception
 
     if shutdown_exception is not None:
@@ -66,7 +64,7 @@ async def test_lifespan_manager(
         elif shutdown_exception is not None:
             stack.enter_context(pytest.raises(shutdown_exception))
 
-        async with LifespanManager(app, concurrency_backend=concurrency_backend) as ctx:
+        async with LifespanManager(app) as ctx:
             # NOTE: this block will not execute in case of startup exception.
             assert ctx is None
             assert not startup_exception
@@ -96,11 +94,9 @@ async def test_lifespan_manager(
 
 
 async def slow_startup(
-    scope: dict,
-    receive: typing.Callable,
-    send: typing.Callable,
-    concurrency_backend: ConcurrencyBackend,
+    scope: dict, receive: typing.Callable, send: typing.Callable,
 ) -> None:
+    concurrency_backend = detect_concurrency_backend()
     message = await receive()
     assert message["type"] == "lifespan.startup"
     await concurrency.sleep(concurrency_backend, 0.05)
@@ -108,11 +104,10 @@ async def slow_startup(
 
 
 async def slow_shutdown(
-    scope: dict,
-    receive: typing.Callable,
-    send: typing.Callable,
-    concurrency_backend: ConcurrencyBackend,
+    scope: dict, receive: typing.Callable, send: typing.Callable,
 ) -> None:
+    concurrency_backend = detect_concurrency_backend()
+
     message = await receive()
     assert message["type"] == "lifespan.startup"
     await send({"type": "lifespan.startup.complete"})
@@ -123,33 +118,26 @@ async def slow_shutdown(
     # ...
 
 
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
-async def test_lifespan_timeout(
-    concurrency_backend: ConcurrencyBackend, app: typing.Callable
-) -> None:
+async def test_lifespan_timeout(app: typing.Callable) -> None:
     with pytest.raises(TimeoutError):
         async with LifespanManager(
-            functools.partial(app, concurrency_backend=concurrency_backend),
-            startup_timeout=0.01,
-            shutdown_timeout=0.01,
-            concurrency_backend=concurrency_backend,
+            app, startup_timeout=0.01, shutdown_timeout=0.01,
         ):
             pass
 
 
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
-async def test_lifespan_no_timeout(
-    concurrency_backend: ConcurrencyBackend, app: typing.Callable
-) -> None:
+async def test_lifespan_no_timeout(app: typing.Callable) -> None:
     async def main() -> None:
         async with LifespanManager(
-            functools.partial(app, concurrency_backend=concurrency_backend),
-            startup_timeout=None,
-            shutdown_timeout=None,
-            concurrency_backend=concurrency_backend,
+            app, startup_timeout=None, shutdown_timeout=None,
         ):
             pass
 
+    concurrency_backend = detect_concurrency_backend()
     timed_out = await concurrency.run_and_move_on_after(concurrency_backend, 0.02, main)
     assert timed_out
 
@@ -182,6 +170,7 @@ async def http_no_assert_receive_request(
     # ...
 
 
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize(
     "app",
     [
@@ -196,9 +185,7 @@ async def http_no_assert_receive_request(
         ),
     ],
 )
-async def test_lifespan_not_supported(
-    concurrency_backend: ConcurrencyBackend, app: typing.Callable
-) -> None:
+async def test_lifespan_not_supported(app: typing.Callable) -> None:
     with pytest.raises(LifespanNotSupported):
-        async with LifespanManager(app, concurrency_backend=concurrency_backend):
+        async with LifespanManager(app):
             pass  # pragma: no cover

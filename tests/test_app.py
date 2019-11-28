@@ -56,7 +56,7 @@ def build_asgi_arguments(
     return scope, receive, send
 
 
-@pytest.mark.usefixtures("concurrency_backend")
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("startup_failed", (False, True))
 async def test_lifespan_app(startup_failed: bool) -> None:
     log: Log = []
