@@ -1,0 +1,14 @@
+#!/bin/sh -e
+
+export PREFIX=""
+if [ -d 'venv' ] ; then
+    export PREFIX="venv/bin/"
+fi
+export SOURCE_FILES="asgi_lifespan tests"
+
+set -x
+
+${PREFIX}autoflake --in-place --recursive $SOURCE_FILES
+${PREFIX}seed-isort-config --application-directories=asgi_lifespan
+${PREFIX}isort --project=asgi_lifespan --recursive --apply $SOURCE_FILES
+${PREFIX}black --target-version=py36 $SOURCE_FILES

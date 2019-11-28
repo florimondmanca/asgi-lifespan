@@ -1,14 +1,15 @@
 -e .
 
+autoflake
 black
 flake8
 flake8-bugbear
 flake8-comprehensions
 isort
 mypy
-nox
 pytest
 pytest-asyncio
 pytest-cov
 pytest-trio
+seed-isort-config
 trio
