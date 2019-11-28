@@ -171,9 +171,6 @@ asyncio.run(main())
 
 import trio
 trio.run(main)
-
-import curio
-curio.run(main)
 ```
 
 Run `$ python main.py` in your terminal, and you should get the following output:
