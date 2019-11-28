@@ -2,9 +2,8 @@ import inspect
 import typing
 from types import TracebackType
 
+from ._concurrency import ConcurrencyBackend, detect_concurrency_backend
 from .compat import AsyncExitStack, asynccontextmanager
-from .concurrency.base import ConcurrencyBackend
-from .concurrency.auto import detect_concurrency_backend
 from .exceptions import LifespanNotSupported
 
 

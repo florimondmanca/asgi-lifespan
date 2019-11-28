@@ -9,9 +9,9 @@ import typing
 
 import trio
 
-from asgi_lifespan.concurrency.asyncio import AsyncioBackend
-from asgi_lifespan.concurrency.base import ConcurrencyBackend
-from asgi_lifespan.concurrency.trio import TrioBackend
+from asgi_lifespan._concurrency.asyncio import AsyncioBackend
+from asgi_lifespan._concurrency.base import ConcurrencyBackend
+from asgi_lifespan._concurrency.trio import TrioBackend
 
 
 @functools.singledispatch

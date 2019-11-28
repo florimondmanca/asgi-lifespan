@@ -4,7 +4,7 @@ import typing
 import pytest
 
 from asgi_lifespan import Lifespan, LifespanManager, LifespanNotSupported
-from asgi_lifespan.concurrency.auto import detect_concurrency_backend
+from asgi_lifespan._concurrency import detect_concurrency_backend
 
 from . import concurrency
 
@@ -94,7 +94,7 @@ async def test_lifespan_manager(
 
 
 async def slow_startup(
-    scope: dict, receive: typing.Callable, send: typing.Callable,
+    scope: dict, receive: typing.Callable, send: typing.Callable
 ) -> None:
     concurrency_backend = detect_concurrency_backend()
     message = await receive()
@@ -104,7 +104,7 @@ async def slow_startup(
 
 
 async def slow_shutdown(
-    scope: dict, receive: typing.Callable, send: typing.Callable,
+    scope: dict, receive: typing.Callable, send: typing.Callable
 ) -> None:
     concurrency_backend = detect_concurrency_backend()
 
@@ -122,9 +122,7 @@ async def slow_shutdown(
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
 async def test_lifespan_timeout(app: typing.Callable) -> None:
     with pytest.raises(TimeoutError):
-        async with LifespanManager(
-            app, startup_timeout=0.01, shutdown_timeout=0.01,
-        ):
+        async with LifespanManager(app, startup_timeout=0.01, shutdown_timeout=0.01):
             pass
 
 
@@ -132,9 +130,7 @@ async def test_lifespan_timeout(app: typing.Callable) -> None:
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
 async def test_lifespan_no_timeout(app: typing.Callable) -> None:
     async def main() -> None:
-        async with LifespanManager(
-            app, startup_timeout=None, shutdown_timeout=None,
-        ):
+        async with LifespanManager(app, startup_timeout=None, shutdown_timeout=None):
             pass
 
     concurrency_backend = detect_concurrency_backend()
