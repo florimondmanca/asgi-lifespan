@@ -2,8 +2,7 @@ import inspect
 import typing
 from types import TracebackType
 
-import anyio
-
+from ._concurrency import ConcurrencyBackend, detect_concurrency_backend
 from .compat import AsyncExitStack, asynccontextmanager
 from .exceptions import LifespanNotSupported
 
@@ -16,6 +15,7 @@ class LifespanManager:
         shutdown_timeout: typing.Optional[float] = 5,
     ) -> None:
         self.app = app
+        self.concurrency_backend = detect_concurrency_backend()
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
         self._exit_stack = AsyncExitStack()
@@ -27,12 +27,14 @@ class LifespanManager:
             self.app,
             startup_timeout=self.startup_timeout,
             shutdown_timeout=self.shutdown_timeout,
+            concurrency_backend=self.concurrency_backend,
         )
 
         # Ensure the async generator used by @asynccontextmanager is properly
-        # closed on exit by wrapping it in anyio.finalize().
-        # This prevents a warning raised by curio in particular.
-        agen = await self._exit_stack.enter_async_context(anyio.finalize(agen))
+        # closed on exit, even in case of an exception.
+        agen = await self._exit_stack.enter_async_context(
+            self.concurrency_backend.finalize(agen)
+        )
         assert inspect.isasyncgen(agen)
 
         @asynccontextmanager
@@ -58,12 +60,13 @@ async def _lifespan_manager_generator(
     app: typing.Callable,
     startup_timeout: typing.Optional[float],
     shutdown_timeout: typing.Optional[float],
-) -> typing.AsyncIterator[None]:
-    startup_complete = anyio.create_event()
-    shutdown_complete = anyio.create_event()
+    concurrency_backend: ConcurrencyBackend,
+) -> typing.AsyncGenerator[None, None]:
+    startup_complete = concurrency_backend.create_event()
+    shutdown_complete = concurrency_backend.create_event()
 
     scope = {"type": "lifespan"}
-    receive_queue = anyio.create_queue(capacity=1)
+    receive_queue = concurrency_backend.create_queue(capacity=2)
     receive_called = False
 
     async def receive() -> dict:
@@ -79,17 +82,19 @@ async def _lifespan_manager_generator(
             )
 
         if message["type"] == "lifespan.startup.complete":
-            await startup_complete.set()
+            startup_complete.set()
         elif message["type"] == "lifespan.shutdown.complete":
-            await shutdown_complete.set()
+            shutdown_complete.set()
 
     async def run_app() -> None:
         try:
             await app(scope, receive, send)
         except Exception as exc:
-            if isinstance(exc, anyio.get_cancelled_exc_class()):
-                # Stay out of the way of task cancellation.
-                raise
+            # If the app crashed, we should abort startup and shutdown as soon
+            # as possible, instead of waiting until timeout.
+            startup_complete.set()
+            shutdown_complete.set()
+
             if not receive_called:
                 raise LifespanNotSupported(
                     "Application failed before making its first call to 'receive()'. "
@@ -98,17 +103,16 @@ async def _lifespan_manager_generator(
                     "If that is not the case, then this crash is unexpected and "
                     "there is probably more debug output in the cause traceback."
                 ) from exc
+
             raise
 
-    async with anyio.create_task_group() as group:
-        await group.spawn(run_app)
-
+    async with concurrency_backend.run_in_background(run_app):
         await receive_queue.put({"type": "lifespan.startup"})
-        async with anyio.fail_after(startup_timeout):
-            await startup_complete.wait()
-
+        await concurrency_backend.run_and_fail_after(
+            startup_timeout, startup_complete.wait
+        )
         yield
-
         await receive_queue.put({"type": "lifespan.shutdown"})
-        async with anyio.fail_after(shutdown_timeout):
-            await shutdown_complete.wait()
+        await concurrency_backend.run_and_fail_after(
+            shutdown_timeout, shutdown_complete.wait
+        )

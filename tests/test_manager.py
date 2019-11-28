@@ -1,13 +1,15 @@
 import contextlib
 import typing
 
-import anyio
 import pytest
 
 from asgi_lifespan import Lifespan, LifespanManager, LifespanNotSupported
+from asgi_lifespan._concurrency import detect_concurrency_backend
+
+from . import concurrency
 
 
-@pytest.mark.anyio
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("startup_exception", (None, ValueError))
 @pytest.mark.parametrize("body_exception", (None, ValueError))
 @pytest.mark.parametrize("shutdown_exception", (None, ValueError))
@@ -94,44 +96,46 @@ async def test_lifespan_manager(
 async def slow_startup(
     scope: dict, receive: typing.Callable, send: typing.Callable
 ) -> None:
+    concurrency_backend = detect_concurrency_backend()
     message = await receive()
     assert message["type"] == "lifespan.startup"
-    await anyio.sleep(0.05)
+    await concurrency.sleep(concurrency_backend, 0.05)
     # ...
 
 
 async def slow_shutdown(
     scope: dict, receive: typing.Callable, send: typing.Callable
 ) -> None:
+    concurrency_backend = detect_concurrency_backend()
+
     message = await receive()
     assert message["type"] == "lifespan.startup"
     await send({"type": "lifespan.startup.complete"})
 
     message = await receive()
     assert message["type"] == "lifespan.shutdown"
-    await anyio.sleep(0.05)
+    await concurrency.sleep(concurrency_backend, 0.05)
     # ...
 
 
-@pytest.mark.anyio
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
 async def test_lifespan_timeout(app: typing.Callable) -> None:
-    async with anyio.move_on_after(0.02) as cancel_scope:
-        with pytest.raises(TimeoutError):
-            async with LifespanManager(
-                app, startup_timeout=0.01, shutdown_timeout=0.01
-            ):
-                pass
-    assert not cancel_scope.cancel_called
+    with pytest.raises(TimeoutError):
+        async with LifespanManager(app, startup_timeout=0.01, shutdown_timeout=0.01):
+            pass
 
 
-@pytest.mark.anyio
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
 async def test_lifespan_no_timeout(app: typing.Callable) -> None:
-    async with anyio.move_on_after(0.02) as cancel_scope:
+    async def main() -> None:
         async with LifespanManager(app, startup_timeout=None, shutdown_timeout=None):
             pass
-    assert cancel_scope.cancel_called
+
+    concurrency_backend = detect_concurrency_backend()
+    timed_out = await concurrency.run_and_move_on_after(concurrency_backend, 0.02, main)
+    assert timed_out
 
 
 async def http_only(
@@ -162,7 +166,7 @@ async def http_no_assert_receive_request(
     # ...
 
 
-@pytest.mark.anyio
+@pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize(
     "app",
     [
