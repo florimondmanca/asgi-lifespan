@@ -1,13 +1,10 @@
 #!/bin/sh -e
 
-# Use the Python executable provided from the `-p` option, or a default.
-[[ $1 = "-p" ]] && PYTHON=$2 || PYTHON="python"
-
 export PREFIX="venv/bin/"
 
 set -x
 
-$PYTHON -m venv venv
+python -m venv venv
 ${PREFIX}python -m pip install -U pip
 ${PREFIX}python -m pip install -r requirements.txt
 
