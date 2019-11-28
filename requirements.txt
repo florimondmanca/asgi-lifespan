@@ -11,4 +11,5 @@ nox
 pytest
 pytest-asyncio
 pytest-cov
+pytest-trio
 trio

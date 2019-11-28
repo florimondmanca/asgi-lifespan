@@ -28,6 +28,7 @@ async def test_lifespan_manager(
         @lifespan.on_event("startup")
         async def startup() -> None:
             assert startup_exception is not None  # Please mypy.
+            print("raising exception")
             raise startup_exception
 
     if shutdown_exception is not None:

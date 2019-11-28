@@ -7,8 +7,11 @@ import asyncio
 import functools
 import typing
 
+import trio
+
 from asgi_lifespan.concurrency.asyncio import AsyncioBackend
 from asgi_lifespan.concurrency.base import ConcurrencyBackend
+from asgi_lifespan.concurrency.trio import TrioBackend
 
 
 @functools.singledispatch
@@ -22,6 +25,11 @@ async def _sleep_asyncio(concurrency_backend: ConcurrencyBackend, seconds: int) 
 
 sleep.register(None.__class__, _sleep_asyncio)
 sleep.register(AsyncioBackend, _sleep_asyncio)
+
+
+@sleep.register(TrioBackend)
+async def _sleep_trio(concurrency_backend: ConcurrencyBackend, seconds: int) -> None:
+    await trio.sleep(seconds)
 
 
 @functools.singledispatch
@@ -48,3 +56,15 @@ async def _run_and_move_on_after_asyncio(
 
 run_and_move_on_after.register(None.__class__, _run_and_move_on_after_asyncio)
 run_and_move_on_after.register(AsyncioBackend, _run_and_move_on_after_asyncio)
+
+
+@run_and_move_on_after.register(TrioBackend)
+async def _run_and_move_on_after_trio(
+    concurrency_backend: ConcurrencyBackend,
+    seconds: typing.Optional[float],
+    coroutine: typing.Callable[[], typing.Awaitable[None]],
+) -> bool:
+    with trio.move_on_after(seconds if seconds is not None else float("inf")):
+        await coroutine()
+        raise NotImplementedError  # pragma: no cover
+    return True

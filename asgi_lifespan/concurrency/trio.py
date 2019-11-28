@@ -1,14 +1,15 @@
-import asyncio
-import contextlib
 import types
 import typing
 
+import trio
+
+from ..compat import AsyncExitStack
 from .base import BaseEvent, BaseQueue, ConcurrencyBackend
 
 
-class AsyncioEvent(BaseEvent):
+class TrioEvent(BaseEvent):
     def __init__(self) -> None:
-        self._event = asyncio.Event()
+        self._event = trio.Event()
 
     def set(self) -> None:
         self._event.set()
@@ -17,33 +18,35 @@ class AsyncioEvent(BaseEvent):
         await self._event.wait()
 
 
-class AsyncioQueue(BaseQueue):
+class TrioQueue(BaseQueue):
     def __init__(self, capacity: int) -> None:
-        self._queue: asyncio.Queue[typing.Any] = asyncio.Queue(maxsize=capacity)
+        self._send_channel, self._receive_channel = trio.open_memory_channel(
+            max_buffer_size=capacity
+        )
 
     async def get(self) -> typing.Any:
-        return await self._queue.get()
+        return await self._receive_channel.receive()
 
     async def put(self, value: typing.Any) -> None:
-        await self._queue.put(value)
+        await self._send_channel.send(value)
 
 
-class AsyncioBackend(ConcurrencyBackend):
+class TrioBackend(ConcurrencyBackend):
     def create_event(self) -> BaseEvent:
-        return AsyncioEvent()
+        return TrioEvent()
 
     def create_queue(self, capacity: int) -> BaseQueue:
-        return AsyncioQueue(capacity=capacity)
+        return TrioQueue(capacity=capacity)
 
     async def run_and_fail_after(
         self,
         seconds: typing.Optional[float],
         coroutine: typing.Callable[[], typing.Awaitable[None]],
     ) -> None:
-        try:
-            await asyncio.wait_for(coroutine(), timeout=seconds)
-        except asyncio.TimeoutError:
-            raise TimeoutError
+        with trio.move_on_after(seconds if seconds is not None else float("inf")):
+            await coroutine()
+            return
+        raise TimeoutError
 
     def run_in_background(
         self, coroutine: typing.Callable[[], typing.Awaitable[None]]
@@ -54,16 +57,11 @@ class AsyncioBackend(ConcurrencyBackend):
 class Background:
     def __init__(self, coroutine: typing.Callable[[], typing.Awaitable[None]]) -> None:
         self.coroutine = coroutine
-        self.task: typing.Optional[asyncio.Task] = None
-        self._task_exception: typing.Optional[BaseException] = None
+        self._exit_stack = AsyncExitStack()
 
     async def __aenter__(self) -> None:
-        async def run_and_silence_cancelled() -> None:
-            with contextlib.suppress(asyncio.CancelledError):
-                await self.coroutine()
-
-        loop = asyncio.get_event_loop()
-        self.task = loop.create_task(run_and_silence_cancelled())
+        nursery = await self._exit_stack.enter_async_context(trio.open_nursery())
+        nursery.start_soon(self.coroutine)
 
     async def __aexit__(
         self,
@@ -71,13 +69,9 @@ class Background:
         exc_value: BaseException = None,
         traceback: types.TracebackType = None,
     ) -> None:
-        assert self.task is not None
-
-        _, pending = await asyncio.wait({self.task}, timeout=0)
-        if pending:
-            self.task.cancel()
-
-        await self.task
-
-        if exc_type is None:
-            self.task.result()
+        try:
+            await self._exit_stack.__aexit__(exc_type, exc_value, traceback)
+        except trio.MultiError as exc:
+            for exception in exc.exceptions:
+                if not isinstance(exception, (trio.Cancelled, GeneratorExit)):
+                    raise exception
