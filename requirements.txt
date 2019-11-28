@@ -1,5 +1,6 @@
 -e .
 
+attrs>=19.2  # Fix compatibility between trio and outcome
 autoflake
 black
 flake8
