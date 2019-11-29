@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## 0.6.0 (November 29, 2019)
+
+### Changed
+
+- Move `Lifespan` to the `lifespan` module. (Pull #21)
+- Refactor `LifespanManager` to drop dependency on `asynccontextmanager` on 3.6. (Pull #20)
+
 ## 0.5.0 (November 29, 2019)
 
 - Enter Beta development status.

@@ -1,3 +1,3 @@
 __title__ = "asgi-lifespan"
 __description__ = "Lifespan protocol support for ASGI apps and libraries."
-__version__ = "0.5.0"
+__version__ = "0.6.0"
