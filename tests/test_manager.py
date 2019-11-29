@@ -65,7 +65,7 @@ async def test_lifespan_manager(
             stack.enter_context(pytest.raises(shutdown_exception))
 
         async with LifespanManager(app) as ctx:
-            # NOTE: this block will not execute in case of startup exception.
+            # NOTE: this block should not execute in case of startup exception.
             assert ctx is None
             assert not startup_exception
             assert received_lifespan_events == ["lifespan.startup"]

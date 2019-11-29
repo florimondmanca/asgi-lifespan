@@ -31,23 +31,7 @@ class ConcurrencyBackend:
     ) -> None:
         raise NotImplementedError  # pragma: no cover
 
-    def finalize(
-        self, agen: typing.AsyncGenerator[None, None]
-    ) -> typing.AsyncContextManager:
-        return Finalize(agen)
-
     def run_in_background(
         self, coroutine: typing.Callable[[], typing.Awaitable[None]]
     ) -> typing.AsyncContextManager:
         raise NotImplementedError  # pragma: no cover
-
-
-class Finalize:
-    def __init__(self, agen: typing.AsyncGenerator):
-        self._agen = agen
-
-    async def __aenter__(self) -> typing.AsyncGenerator:
-        return self._agen
-
-    async def __aexit__(self, *args: typing.Any) -> None:
-        await self._agen.aclose()

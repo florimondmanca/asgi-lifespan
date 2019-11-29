@@ -69,9 +69,4 @@ class Background:
         exc_value: BaseException = None,
         traceback: types.TracebackType = None,
     ) -> None:
-        try:
-            await self._exit_stack.__aexit__(exc_type, exc_value, traceback)
-        except trio.MultiError as exc:
-            for exception in exc.exceptions:
-                if not isinstance(exception, (trio.Cancelled, GeneratorExit)):
-                    raise exception
+        await self._exit_stack.__aexit__(exc_type, exc_value, traceback)
