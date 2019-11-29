@@ -28,6 +28,7 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
 - Add lifespan support to an ASGI app using `LifespanMiddleware`.
 - Send lifespan events to an ASGI app (e.g. for testing) using `LifespanManager`.
 - Support for [asyncio] and [trio].
+- No hard dependencies.
 - Fully type-annotated.
 - 100% test coverage.
 
@@ -165,6 +166,7 @@ Save this script as `main.py`. You can run it with any of the supported async li
 
 ```python
 # Add one of these at the bottom of 'main.py'.
+# asgi-lifespan will auto-detect the async library in use.
 
 import asyncio
 asyncio.run(main())
