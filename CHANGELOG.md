@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## 0.5.0 (November 29, 2019)
+
+- Enter Beta development status.
+
+### Removed
+
+- Remove `curio` support. (Pull #18)
+
+### Added
+
+- Ship binary distributions (wheels) alongside source distributions.
+
+### Changed
+
+- Use custom concurrency backends instead of `anyio` for asyncio and trio support. (Pull #18)
+
 ## 0.4.2 (October 6, 2019)
 
 ### Fixed
