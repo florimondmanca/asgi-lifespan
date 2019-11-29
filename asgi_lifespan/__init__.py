@@ -1,6 +1,6 @@
 from .__version__ import __description__, __title__, __version__
-from .app import Lifespan
 from .exceptions import LifespanNotSupported
+from .lifespan import Lifespan
 from .manager import LifespanManager
 from .middleware import LifespanMiddleware
 
