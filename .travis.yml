@@ -10,16 +10,14 @@ branches:
 python:
   - "3.6"
   - "3.7"
-  - "3.8-dev"
+  - "3.8"
 
 jobs:
   include:
-    - python: 3.7
-      install: pip install --upgrade nox
-      script: nox -s check
+    - python: 3.8
+      script: scripts/check
 
-script:
-  - scripts/test
+script: scripts/test
 
 after_script:
   - if [ -f .coverage ]; then

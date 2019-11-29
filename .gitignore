@@ -1,6 +1,5 @@
 # Tooling.
 .coverage
-.nox/
 venv*/
 .python-version
 
