@@ -1,10 +1,10 @@
 import typing
 from types import TracebackType
 
+from ._compat import AsyncExitStack
 from ._concurrency import detect_concurrency_backend
+from ._exceptions import LifespanNotSupported
 from ._types import ASGIApp, Message
-from .compat import AsyncExitStack
-from .exceptions import LifespanNotSupported
 
 
 class LifespanManager:

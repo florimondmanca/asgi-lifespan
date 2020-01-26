@@ -1,8 +1,8 @@
 from .__version__ import __description__, __title__, __version__
-from .exceptions import LifespanNotSupported
-from .lifespan import Lifespan
-from .manager import LifespanManager
-from .middleware import LifespanMiddleware
+from ._exceptions import LifespanNotSupported
+from ._lifespan import Lifespan
+from ._manager import LifespanManager
+from ._middleware import LifespanMiddleware
 
 __all__ = [
     "__description__",
