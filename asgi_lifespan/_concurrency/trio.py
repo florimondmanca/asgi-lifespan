@@ -3,7 +3,7 @@ import typing
 
 import trio
 
-from ..compat import AsyncExitStack
+from .._compat import AsyncExitStack
 from .base import BaseEvent, BaseQueue, ConcurrencyBackend
 
 
