@@ -5,6 +5,7 @@ import pytest
 
 from asgi_lifespan import Lifespan, LifespanManager, LifespanNotSupported
 from asgi_lifespan._concurrency import detect_concurrency_backend
+from asgi_lifespan._types import Message, Receive, Scope, Send
 
 from . import concurrency
 
@@ -41,15 +42,15 @@ async def test_lifespan_manager(
     received_lifespan_events: typing.List[str] = []
     sent_lifespan_events: typing.List[str] = []
 
-    async def app(scope: dict, receive: typing.Callable, send: typing.Callable) -> None:
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "lifespan"
 
-        async def _receive() -> dict:
+        async def _receive() -> Message:
             message = await receive()
             received_lifespan_events.append(message["type"])
             return message
 
-        async def _send(message: dict) -> None:
+        async def _send(message: Message) -> None:
             sent_lifespan_events.append(message["type"])
             await send(message)
 

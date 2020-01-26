@@ -2,6 +2,7 @@ import typing
 from types import TracebackType
 
 from ._concurrency import detect_concurrency_backend
+from ._types import ASGIApp, Message
 from .compat import AsyncExitStack
 from .exceptions import LifespanNotSupported
 
@@ -9,7 +10,7 @@ from .exceptions import LifespanNotSupported
 class LifespanManager:
     def __init__(
         self,
-        app: typing.Callable,
+        app: ASGIApp,
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
     ) -> None:
@@ -40,11 +41,11 @@ class LifespanManager:
             self.shutdown_timeout, self._shutdown_complete.wait
         )
 
-    async def receive(self) -> dict:
+    async def receive(self) -> Message:
         self._receive_called = True
         return await self._receive_queue.get()
 
-    async def send(self, message: dict) -> None:
+    async def send(self, message: Message) -> None:
         if not self._receive_called:
             raise LifespanNotSupported(
                 "Application called send() before receive(). "
