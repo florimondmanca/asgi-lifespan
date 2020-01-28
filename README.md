@@ -46,7 +46,7 @@ async def main():
 import asyncio; asyncio.run(main())
 
 # On trio:
-import trio; trio.run(main)
+# import trio; trio.run(main)
 ```
 
 Output:
