@@ -83,10 +83,10 @@ from starlette.routing import Route
 @pytest.fixture
 async def app():
     async def startup():
-        print("Starting up...")
+        print("Starting up")
 
     async def shutdown():
-        print("Shutting down...")
+        print("Shutting down")
     
     async def home(request):
         return PlainTextResponse("Hello, world!")
@@ -105,14 +105,17 @@ async def app():
 @pytest.fixture
 async def client(app):
     async with httpx.AsyncClient(app=app, base_url="http://app.io") as client:
+        print("Client is ready")
         yield client
 
 
 @pytest.mark.asyncio
 async def test_home(client):
+    print("Testing")
     response = await client.get("/")
     assert response.status_code == 200
     assert response.text == "Hello, world!"
+    print("OK")
 ```
 
 - Run the test suite with `$ pytest -s test_app.py`:
@@ -125,9 +128,12 @@ rootdir: /Users/florimond/Developer/florimondmanca-projects/asgi-lifespan, inifi
 plugins: asyncio-0.10.0
 
 
-test_app.py Starting up!
+test_app.py Starting up
 We're in!
-.Shutting down!
+Client is ready
+Testing
+OK
+.Shutting down
 
 ======================= 1 passed in 0.88s =======================
 ```
