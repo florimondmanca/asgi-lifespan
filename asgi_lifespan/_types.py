@@ -1,9 +1,5 @@
 import typing
 
-AsyncEventHandler = typing.Callable[[], typing.Awaitable[None]]
-SyncEventHandler = typing.Callable[[], None]
-E = typing.TypeVar("E", AsyncEventHandler, SyncEventHandler)
-
 # ASGI types.
 # Copied from: https://github.com/encode/starlette/blob/master/starlette/types.py
 Scope = typing.MutableMapping[str, typing.Any]
