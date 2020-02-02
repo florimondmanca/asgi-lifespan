@@ -10,7 +10,6 @@ Programmatically send startup/shutdown [lifespan](https://asgi.readthedocs.io/en
 
 - Send lifespan events to an ASGI app using `LifespanManager`.
 - Support for [`asyncio`](https://docs.python.org/3/library/asyncio) and [`trio`](https://trio.readthedocs.io).
-- No dependencies.
 - Fully type-annotated.
 - 100% test coverage.
 

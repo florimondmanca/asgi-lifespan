@@ -37,7 +37,7 @@ setup(
     author="Florimond Manca",
     author_email="florimond.manca@gmail.com",
     packages=get_packages("asgi_lifespan"),
-    install_requires=["async_exit_stack; python_version < '3.7'"],
+    install_requires=["sniffio", "async_exit_stack; python_version < '3.7'"],
     include_package_data=True,
     package_data={"asgi_lifespan": ["py.typed"]},
     zip_safe=False,
