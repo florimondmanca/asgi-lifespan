@@ -4,7 +4,7 @@ from types import TracebackType
 from ._compat import AsyncExitStack
 from ._concurrency import detect_concurrency_backend
 from ._exceptions import LifespanNotSupported
-from ._types import ASGIApp, Message
+from ._types import ASGIApp, Message, Scope
 
 
 class LifespanManager:
@@ -58,7 +58,7 @@ class LifespanManager:
             self._shutdown_complete.set()
 
     async def run_app(self) -> None:
-        scope = {"type": "lifespan"}
+        scope: Scope = {"type": "lifespan"}
 
         try:
             await self.app(scope, self.receive, self.send)

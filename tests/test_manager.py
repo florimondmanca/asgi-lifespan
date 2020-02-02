@@ -2,8 +2,9 @@ import contextlib
 import typing
 
 import pytest
+from starlette.routing import Router
 
-from asgi_lifespan import Lifespan, LifespanManager, LifespanNotSupported
+from asgi_lifespan import LifespanManager, LifespanNotSupported
 from asgi_lifespan._concurrency import detect_concurrency_backend
 from asgi_lifespan._types import Message, Receive, Scope, Send
 
@@ -19,20 +20,20 @@ async def test_lifespan_manager(
     body_exception: typing.Optional[typing.Type[BaseException]],
     shutdown_exception: typing.Optional[typing.Type[BaseException]],
 ) -> None:
-    lifespan = Lifespan()
+    router = Router()
 
     # Setup failing event handlers.
 
     if startup_exception is not None:
 
-        @lifespan.on_event("startup")
+        @router.on_event("startup")
         async def startup() -> None:
             assert startup_exception is not None  # Please mypy.
             raise startup_exception
 
     if shutdown_exception is not None:
 
-        @lifespan.on_event("shutdown")
+        @router.on_event("shutdown")
         async def shutdown() -> None:
             assert shutdown_exception is not None  # Please mypy.
             raise shutdown_exception
@@ -54,7 +55,7 @@ async def test_lifespan_manager(
             sent_lifespan_events.append(message["type"])
             await send(message)
 
-        await lifespan(scope, _receive, _send)
+        await router(scope, _receive, _send)
 
     with contextlib.ExitStack() as stack:
         # Set up expected raised exceptions.
@@ -159,7 +160,7 @@ async def http_no_assert(
     # ...
 
 
-async def http_no_assert_receive_request(
+async def http_no_assert_before_receive_request(
     scope: dict, receive: typing.Callable, send: typing.Callable
 ) -> None:
     message = await receive()
@@ -174,7 +175,7 @@ async def http_no_assert_receive_request(
         http_only,
         http_no_assert,
         pytest.param(
-            http_no_assert_receive_request,
+            http_no_assert_before_receive_request,
             marks=pytest.mark.xfail(
                 reason="No way for us to detect unsupported lifespan in this case.",
                 raises=AssertionError,
