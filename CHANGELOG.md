@@ -4,7 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 1.0.0 (February 2, 2020)
+
+### Removed
+
+- Drop `Lifespan` and `LifespanMiddleware`. Please use Starlette's built-in lifespan capabilities instead. (Pull #27)
+
+### Fixed
+
+- Use `sniffio` for auto-detecting the async environment. (Pull #28)
+
+- Enforce 100% test coverage on CI. (Pull #29)
+
+### Changed
+
+- Enforce importing from the top-level package by switching to private internal modules. (Pull #26)
 
 ## 0.6.0 (November 29, 2019)
 
