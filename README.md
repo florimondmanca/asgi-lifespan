@@ -18,7 +18,7 @@ Programmatically send startup/shutdown [lifespan](https://asgi.readthedocs.io/en
 ## Installation
 
 ```bash
-pip install asgi-lifespan==1.*
+pip install 'asgi-lifespan==1.*'
 ```
 
 ## Usage
