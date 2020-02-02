@@ -26,7 +26,6 @@ Modular components for adding [lifespan protocol](https://asgi.readthedocs.io/en
 - Add lifespan support to an ASGI app using `LifespanMiddleware`.
 - Send lifespan events to an ASGI app (e.g. for testing) using `LifespanManager`.
 - Support for [asyncio] and [trio].
-- No hard dependencies.
 - Fully type-annotated.
 - 100% test coverage.
 
