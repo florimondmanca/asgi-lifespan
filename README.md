@@ -4,7 +4,7 @@
 [![Coverage](https://codecov.io/gh/florimondmanca/asgi-lifespan/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-lifespan)
 [![Package version](https://badge.fury.io/py/asgi-lifespan.svg)](https://pypi.org/project/asgi-lifespan)
 
-`asgi-lifespan` allows you to send [lifespan](https://asgi.readthedocs.io/en/latest/specs/lifespan.html) events into [ASGI](https://asgi.readthedocs.io) applications. Use this with [HTTPX](https://www.python-httpx.org) to startup/shutdown an ASGI app before sending requests to it directly, e.g. for testing purposes.
+Send startup/shutdown [lifespan](https://asgi.readthedocs.io/en/latest/specs/lifespan.html) events into [ASGI](https://asgi.readthedocs.io) applications. When used in combination with an ASGI-capable HTTP client such as [HTTPX](https://www.python-httpx.org), this allows mocking or testing ASGI applications without having to spin up an ASGI server.
 
 ## Features
 
@@ -14,15 +14,19 @@
 - Fully type-annotated.
 - 100% test coverage.
 
+> **Note**: `asgi-lifespan==1.0.0` dropped the `Lifespan` and `LifespanMiddleware` helpers. If you need to add lifespan support to an ASGI application, consider using the lifespan-capable `Router` class provided by [Starlette](https://www.starlette.io).
+
 ## Installation
 
 ```bash
-pip install asgi-lifespan
+pip install asgi-lifespan==1.*
 ```
 
 ## Usage
 
-`asgi-lifespan` provides a `LifespanManager` to programmatically send ASGI lifespan events into an ASGI app. `LifespanManager` can run on either `asyncio` or `trio`, and will auto-detect the async library in use.
+`asgi-lifespan` provides a `LifespanManager` to programmatically send ASGI lifespan events into an ASGI app. This can be used to programmatically startup/shutdown an ASGI app without having to spin up an ASGI server.
+
+`LifespanManager` can run on either `asyncio` or `trio`, and will auto-detect the async library in use.
 
 ### Basic usage
 
@@ -60,7 +64,7 @@ Shutting down!
 
 ### Sending lifespan events for testing
 
-The example below demonstrates how to use `asgi-lifespan` in conjunction with HTTPX and `pytest` in order to send test requests into an ASGI app.
+The example below demonstrates how to use `asgi-lifespan` in conjunction with [HTTPX](https://www.python-httpx.org) and `pytest` in order to send test requests into an ASGI app.
 
 - Install dependencies:
 
@@ -68,7 +72,7 @@ The example below demonstrates how to use `asgi-lifespan` in conjunction with HT
 pip install asgi-lifespan httpx starlette pytest pytest-asyncio
 ```
 
-- Write the test script:
+- Test script:
 
 ```python
 # test_app.py
