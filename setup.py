@@ -31,7 +31,7 @@ setup(
     version=get_version("asgi_lifespan"),
     url="https://github.com/florimondmanca/asgi-lifespan",
     license="MIT",
-    description="Send lifespan events into ASGI apps.",
+    description="Programmatic startup/shutdown of ASGI apps.",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Florimond Manca",

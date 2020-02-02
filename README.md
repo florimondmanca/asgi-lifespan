@@ -4,7 +4,7 @@
 [![Coverage](https://codecov.io/gh/florimondmanca/asgi-lifespan/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-lifespan)
 [![Package version](https://badge.fury.io/py/asgi-lifespan.svg)](https://pypi.org/project/asgi-lifespan)
 
-Send startup/shutdown [lifespan](https://asgi.readthedocs.io/en/latest/specs/lifespan.html) events into [ASGI](https://asgi.readthedocs.io) applications. When used in combination with an ASGI-capable HTTP client such as [HTTPX](https://www.python-httpx.org), this allows mocking or testing ASGI applications without having to spin up an ASGI server.
+Programmatically send startup/shutdown [lifespan](https://asgi.readthedocs.io/en/latest/specs/lifespan.html) events into [ASGI](https://asgi.readthedocs.io) applications. When used in combination with an ASGI-capable HTTP client such as [HTTPX](https://www.python-httpx.org), this allows mocking or testing ASGI applications without having to spin up an ASGI server.
 
 ## Features
 
