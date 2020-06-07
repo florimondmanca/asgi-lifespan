@@ -8,6 +8,7 @@ resources:
 
 trigger:
   - master
+  - refs/tags/*
 
 pr:
   - master
