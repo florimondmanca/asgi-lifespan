@@ -4,10 +4,11 @@ resources:
       type: github
       endpoint: github
       name: florimondmanca/azure-pipelines-templates
-      ref: refs/tags/3.2
+      ref: refs/heads/master
 
 trigger:
   - master
+  - refs/tags/*
 
 pr:
   - master
@@ -15,23 +16,24 @@ pr:
 variables:
   CI: true
   PIP_CACHE_DIR: $(Pipeline.Workspace)/.cache/pip
-  GIT_REF: $(Build.SourceBranch)
-  TWINE_USERNAME: __token__
-  TWINE_PASSWORD: $(PYPI_TOKEN)
 
-jobs:
-  - template: job--python-check.yml@templates
-    parameters:
-      pythonVersion: "3.8"
+stages:
+  - stage: test
+    jobs:
+      - template: job--python-check.yml@templates
+        parameters:
+          pythonVersion: "3.8"
+      - template: job--python-test.yml@templates
+        parameters:
+          jobs:
+            py36:
+            py37:
+            py38:
+              coverage: true
 
-  - template: job--python-test.yml@templates
-    parameters:
-      jobs:
-        py36:
-        py37:
-        py38:
-          coverage: true
-
-  - template: job--python-publish--tag.yml@templates
-    parameters:
-      pythonVersion: "3.8"
+  - stage: publish
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    jobs:
+      - template: job--python-publish.yml@templates
+        parameters:
+          pypiRemote: pypi-public

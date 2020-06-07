@@ -6,7 +6,7 @@ if [ -d 'venv' ] ; then
     PREFIX="venv/bin/"
 fi
 
-if [ ! -z "$CI"]; then 
+if [ ! -z "$CI" ]; then 
     VERSION=$(grep __version__ ${VERSION_FILE} | grep -o '[0-9][^"]*')
 
     if [ "refs/tags/${VERSION}" != "${GIT_REF}" ] ; then
@@ -15,4 +15,4 @@ if [ ! -z "$CI"]; then
     fi
 fi
 
-${PREFIX}twine upload dist/*
+${PREFIX}twine upload "$@" dist/*

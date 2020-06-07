@@ -42,7 +42,7 @@ setup(
     package_data={"asgi_lifespan": ["py.typed"]},
     zip_safe=False,
     classifiers=[
-        "Development Status :: 5 Production/Stable",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",

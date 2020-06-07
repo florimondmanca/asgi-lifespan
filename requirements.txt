@@ -1,5 +1,10 @@
 -e .
 
+# Packaging
+twine
+wheel
+
+# Linting and testing
 attrs>=19.2  # Fix compatibility between trio and outcome
 autoflake
 black
