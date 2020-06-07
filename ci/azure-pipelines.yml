@@ -1,0 +1,30 @@
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      endpoint: github
+      name: florimondmanca/azure-pipelines-templates
+      ref: refs/tags/3.1
+
+trigger:
+  - master
+
+pr:
+  - master
+
+variables:
+  CI: true
+  PIP_CACHE_DIR: $(Pipeline.Workspace)/.cache/pip
+
+jobs:
+  - template: job--python-check.yml@templates
+    parameters:
+      pythonVersion: "3.8"
+
+  - template: job--python-test.yml@templates
+    parameters:
+      jobs:
+        py36:
+        py37:
+        py38:
+          coverage: true
