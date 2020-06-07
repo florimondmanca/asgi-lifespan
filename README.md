@@ -1,6 +1,6 @@
 # asgi-lifespan
 
-[![Build Status](https://travis-ci.com/florimondmanca/asgi-lifespan.svg?branch=master)](https://travis-ci.com/florimondmanca/asgi-lifespan)
+[![Build Status](https://dev.azure.com/florimondmanca/public/_apis/build/status/florimondmanca.asgi-lifespan?branchName=master)](https://dev.azure.com/florimondmanca/public/_build/latest?definitionId=12&branchName=master)
 [![Coverage](https://codecov.io/gh/florimondmanca/asgi-lifespan/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-lifespan)
 [![Package version](https://badge.fury.io/py/asgi-lifespan.svg)](https://pypi.org/project/asgi-lifespan)
 
@@ -90,7 +90,7 @@ async def app():
 
     async def shutdown():
         print("Shutting down")
-    
+
     async def home(request):
         return PlainTextResponse("Hello, world!")
 
