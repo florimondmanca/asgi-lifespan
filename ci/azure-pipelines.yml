@@ -7,8 +7,12 @@ resources:
       ref: refs/tags/3.2
 
 trigger:
-  - master
-  - refs/tags/*
+  branches:
+    include:
+      - master
+  tags:
+    include:
+      - "*"
 
 pr:
   - master
