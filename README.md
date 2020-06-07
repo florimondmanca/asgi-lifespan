@@ -119,15 +119,11 @@ async def test_home(client):
     print("OK")
 ```
 
-- Run the test suite with `$ pytest -s test_app.py`:
+- Run the test suite:
 
 ```console
-$ pytest -s debug/test_app.py
+$ pytest -s test_app.py
 ======================= test session starts =======================
-platform darwin -- Python 3.8.0, pytest-5.3.4, py-1.8.1, pluggy-0.13.1
-rootdir: /Users/florimond/Developer/florimondmanca-projects/asgi-lifespan, inifile: setup.cfg
-plugins: asyncio-0.10.0
-
 
 test_app.py Starting up
 We're in!
