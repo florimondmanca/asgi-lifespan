@@ -14,8 +14,11 @@ pr:
   - master
 
 variables:
-  CI: true
-  PIP_CACHE_DIR: $(Pipeline.Workspace)/.cache/pip
+  - name: CI
+    value: true
+  - name: PIP_CACHE_DIR
+    value: $(Pipeline.Workspace)/.cache/pip
+  - group: pypi-credentials
 
 stages:
   - stage: test
@@ -36,4 +39,4 @@ stages:
     jobs:
       - template: job--python-publish.yml@templates
         parameters:
-          pypiRemote: pypi-public
+          token: $(pypiToken)
