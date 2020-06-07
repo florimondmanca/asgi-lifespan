@@ -13,8 +13,6 @@ Programmatically send startup/shutdown [lifespan](https://asgi.readthedocs.io/en
 - Fully type-annotated.
 - 100% test coverage.
 
-> **Note**: `asgi-lifespan==1.0.0` dropped the `Lifespan` and `LifespanMiddleware` helpers. If you need to add lifespan support to an ASGI application, consider using the lifespan-capable `Router` class provided by [Starlette](https://www.starlette.io).
-
 ## Installation
 
 ```bash
