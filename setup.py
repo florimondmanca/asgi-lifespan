@@ -5,11 +5,11 @@ import re
 import typing
 from pathlib import Path
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def get_version(package: str) -> str:
-    version = Path(package, "__version__.py").read_text()
+    version = Path("src", package, "__version__.py").read_text()
     match = re.search("__version__ = ['\"]([^'\"]+)['\"]", version)
     assert match is not None
     return match.group(1)
@@ -19,10 +19,6 @@ def get_long_description() -> str:
     with open("README.md", encoding="utf8") as readme:
         with open("CHANGELOG.md", encoding="utf8") as changelog:
             return readme.read() + "\n\n" + changelog.read()
-
-
-def get_packages(package: str) -> typing.List[str]:
-    return [str(path.parent) for path in Path(package).glob("**/__init__.py")]
 
 
 setup(
@@ -36,10 +32,10 @@ setup(
     long_description_content_type="text/markdown",
     author="Florimond Manca",
     author_email="florimond.manca@gmail.com",
-    packages=get_packages("asgi_lifespan"),
+    packages=find_packages("src"),
+    package_dir={"": "src"},
     install_requires=["sniffio", "async_exit_stack; python_version < '3.7'"],
     include_package_data=True,
-    package_data={"asgi_lifespan": ["py.typed"]},
     zip_safe=False,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
