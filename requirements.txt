@@ -11,7 +11,7 @@ black
 flake8
 flake8-bugbear
 flake8-comprehensions
-isort
+isort==5.*
 mypy
 pytest
 pytest-asyncio
