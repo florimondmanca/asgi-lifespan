@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import re
-import typing
 from pathlib import Path
 
 from setuptools import find_packages, setup
