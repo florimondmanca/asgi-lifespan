@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-VERSION_FILE="asgi_lifespan/__version__.py"
+VERSION_FILE="src/asgi_lifespan/__version__.py"
 PREFIX=""
 if [ -d 'venv' ] ; then
     PREFIX="venv/bin/"
