@@ -33,6 +33,8 @@ stages:
             py37:
             py38:
               coverage: true
+            py39:
+            py310:
 
   - stage: publish
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
