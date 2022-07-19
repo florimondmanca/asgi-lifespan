@@ -159,6 +159,13 @@ async def http_no_assert(
     )
     # ...
 
+async def returns_without_handling_lifespan(
+    scope: dict, receive: typing.Callable, send: typing.Callable
+) -> None:
+    if scope["type"] != "http":
+        ...
+    raise AssertionError("Should not be called")  # pragma: no cover
+
 
 async def http_no_assert_before_receive_request(
     scope: dict, receive: typing.Callable, send: typing.Callable
@@ -181,6 +188,7 @@ async def http_no_assert_before_receive_request(
                 raises=AssertionError,
             ),
         ),
+        returns_without_handling_lifespan,
     ],
 )
 async def test_lifespan_not_supported(app: typing.Callable) -> None:
