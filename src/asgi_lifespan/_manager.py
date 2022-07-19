@@ -62,6 +62,11 @@ class LifespanManager:
 
         try:
             await self.app(scope, self.receive, self.send)
+            if not self._receive_called:
+                raise LifespanNotSupported(
+                    "Application never called receive()"
+                    "Is it missing `assert scope['type'] == 'http'` or similar?"
+                )
         except BaseException as exc:
             self._app_exception = exc
 
