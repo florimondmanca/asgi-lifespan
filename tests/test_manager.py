@@ -164,6 +164,7 @@ async def returns_without_handling_lifespan(
 ) -> None:
     if scope["type"] != "http":
         ...
+        return
     raise AssertionError("Should not be called")  # pragma: no cover
 
 
