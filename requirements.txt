@@ -7,7 +7,7 @@ wheel
 # Linting and testing
 attrs>=19.2  # Fix compatibility between trio and outcome
 autoflake
-black==20.8b1
+black==22.6.0
 flake8
 flake8-bugbear
 flake8-comprehensions
