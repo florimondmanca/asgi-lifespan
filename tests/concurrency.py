@@ -15,17 +15,19 @@ from asgi_lifespan._concurrency.trio import TrioBackend
 
 
 @functools.singledispatch
-async def sleep(concurrency_backend: ConcurrencyBackend, seconds: int) -> None:
+async def sleep(concurrency_backend: ConcurrencyBackend, seconds: float) -> None:
     raise NotImplementedError  # pragma: no cover
 
 
 @sleep.register(AsyncioBackend)
-async def _sleep_asyncio(concurrency_backend: ConcurrencyBackend, seconds: int) -> None:
+async def _sleep_asyncio(
+    concurrency_backend: ConcurrencyBackend, seconds: float
+) -> None:
     await asyncio.sleep(seconds)
 
 
 @sleep.register(TrioBackend)
-async def _sleep_trio(concurrency_backend: ConcurrencyBackend, seconds: int) -> None:
+async def _sleep_trio(concurrency_backend: ConcurrencyBackend, seconds: float) -> None:
     await trio.sleep(seconds)
 
 
