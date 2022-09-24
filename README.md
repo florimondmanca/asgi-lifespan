@@ -75,13 +75,14 @@ pip install asgi-lifespan httpx starlette pytest pytest-asyncio
 # test_app.py
 import httpx
 import pytest
+import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def app():
     async def startup():
         print("Starting up")
@@ -103,7 +104,7 @@ async def app():
         yield app
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client(app):
     async with httpx.AsyncClient(app=app, base_url="http://app.io") as client:
         print("Client is ready")
