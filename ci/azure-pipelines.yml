@@ -29,7 +29,6 @@ stages:
       - template: job--python-test.yml@templates
         parameters:
           jobs:
-            py36:
             py37:
             py38:
               coverage: true
