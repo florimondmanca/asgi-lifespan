@@ -66,7 +66,7 @@ class Background:
     async def __aexit__(
         self,
         exc_type: typing.Optional[typing.Type[BaseException]] = None,
-        exc_value: BaseException = None,
-        traceback: types.TracebackType = None,
+        exc_value: typing.Optional[BaseException] = None,
+        traceback: typing.Optional[types.TracebackType] = None,
     ) -> None:
         await self._exit_stack.__aexit__(exc_type, exc_value, traceback)

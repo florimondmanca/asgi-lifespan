@@ -68,8 +68,8 @@ class Background:
     async def __aexit__(
         self,
         exc_type: typing.Optional[typing.Type[BaseException]] = None,
-        exc_value: BaseException = None,
-        traceback: types.TracebackType = None,
+        exc_value: typing.Optional[BaseException] = None,
+        traceback: typing.Optional[types.TracebackType] = None,
     ) -> None:
         assert self.task is not None
 
