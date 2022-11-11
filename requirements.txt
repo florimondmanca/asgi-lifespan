@@ -8,6 +8,7 @@ wheel
 attrs>=19.2  # Fix compatibility between trio and outcome
 autoflake
 black==22.10.*
+exceptiongroup; python_version<'3.11'
 flake8==5.*
 isort==5.*
 mypy==0.990
