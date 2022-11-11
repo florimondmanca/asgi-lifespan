@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asgi-lifespan"
+description = "Programmatic startup/shutdown of ASGI apps."
+requires-python = ">=3.7"
+license = { text = "MIT" }
+authors = [
+  { name = "Florimond Manca", email = "florimond.manca@protonmail.com" },
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Framework :: AsyncIO",
+  "Framework :: Trio",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+  "sniffio",
+]
+dynamic = ["version", "readme"]
+
+[project.urls]
+"Homepage" = "https://github.com/florimondmanca/asgi-lifespan"
+
+[tool.setuptools.dynamic]
+version = { attr = "asgi_lifespan.__version__" }
+readme = { file = ["README.md", "CHANGELOG.md"], content-type = "text/markdown" }

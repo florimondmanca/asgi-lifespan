@@ -9,34 +9,53 @@ from asgi_lifespan._concurrency import detect_concurrency_backend
 from asgi_lifespan._types import Message, Receive, Scope, Send
 
 from . import concurrency
+from .compat import ExceptionGroup
+
+
+class StartupFailed(Exception):
+    pass
+
+
+class BodyFailed(Exception):
+    pass
+
+
+class ShutdownFailed(Exception):
+    pass
 
 
 @pytest.mark.usefixtures("concurrency")
-@pytest.mark.parametrize("startup_exception", (None, ValueError))
-@pytest.mark.parametrize("body_exception", (None, ValueError))
-@pytest.mark.parametrize("shutdown_exception", (None, ValueError))
+@pytest.mark.parametrize("startup_exception", (None, StartupFailed))
+@pytest.mark.parametrize("body_exception", (None, BodyFailed))
+@pytest.mark.parametrize("shutdown_exception", (None, ShutdownFailed))
 async def test_lifespan_manager(
+    concurrency: str,
     startup_exception: typing.Optional[typing.Type[BaseException]],
     body_exception: typing.Optional[typing.Type[BaseException]],
     shutdown_exception: typing.Optional[typing.Type[BaseException]],
 ) -> None:
-    router = Router()
-
     # Setup failing event handlers.
+
+    on_startup: list = []
+    on_shutdown: list = []
 
     if startup_exception is not None:
 
-        @router.on_event("startup")
         async def startup() -> None:
             assert startup_exception is not None  # Please mypy.
-            raise startup_exception
+            raise startup_exception()
+
+        on_startup.append(startup)
 
     if shutdown_exception is not None:
 
-        @router.on_event("shutdown")
         async def shutdown() -> None:
             assert shutdown_exception is not None  # Please mypy.
-            raise shutdown_exception
+            raise shutdown_exception()
+
+        on_shutdown.append(shutdown)
+
+    router = Router(on_startup=on_startup, on_shutdown=on_shutdown)
 
     # Set up spying on exchanged ASGI events.
 
@@ -62,7 +81,16 @@ async def test_lifespan_manager(
         if startup_exception is not None:
             stack.enter_context(pytest.raises(startup_exception))
         elif body_exception is not None:
-            stack.enter_context(pytest.raises(body_exception))
+            if shutdown_exception is not None:
+                # Trio now raises the new `ExceptionGroup` in case
+                # of multiple errors. (Before 3.11, this will be the backport.)
+                stack.enter_context(
+                    pytest.raises(
+                        ExceptionGroup if concurrency == "trio" else shutdown_exception
+                    )
+                )
+            else:
+                stack.enter_context(pytest.raises(body_exception))
         elif shutdown_exception is not None:
             stack.enter_context(pytest.raises(shutdown_exception))
 
@@ -83,10 +111,16 @@ async def test_lifespan_manager(
         assert sent_lifespan_events == ["lifespan.startup.failed"]
     elif body_exception:
         assert received_lifespan_events == ["lifespan.startup"]
-        assert sent_lifespan_events == ["lifespan.startup.complete"]
+        assert sent_lifespan_events == [
+            "lifespan.startup.complete",
+            "lifespan.shutdown.failed",
+        ]
     elif shutdown_exception:
         assert received_lifespan_events == ["lifespan.startup", "lifespan.shutdown"]
-        assert sent_lifespan_events == ["lifespan.startup.complete"]
+        assert sent_lifespan_events == [
+            "lifespan.startup.complete",
+            "lifespan.shutdown.failed",
+        ]
     else:
         assert received_lifespan_events == ["lifespan.startup", "lifespan.shutdown"]
         assert sent_lifespan_events == [

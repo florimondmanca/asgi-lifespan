@@ -1,3 +1,5 @@
+import typing
+
 import pytest
 
 
@@ -7,5 +9,5 @@ import pytest
         pytest.param("trio", marks=pytest.mark.trio),
     ]
 )
-def concurrency() -> None:
-    return
+def concurrency(request: typing.Any) -> str:
+    return request.param
