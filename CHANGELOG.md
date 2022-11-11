@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.0.0 (November 11, 2022)
+
+### Removed
+
+- Drop support for Python 3.6. (Pull #55)
+
+### Added
+
+- Add official support for Python 3.11. (Pull #55)
+- Add official support for Python 3.9 and 3.10. (Pull #46 - Thanks @euri10)
+
+### Fixed
+
+- Ensure compatibility with mypy 0.990+, which made `no_implicit_optional` the default. (Pull #53 - Thanks @AllSeeingEyeTolledEweSew)
+
 ## 1.0.1 (June 8, 2020)
 
 ### Fixed
@@ -19,7 +34,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Use `sniffio` for auto-detecting the async environment. (Pull #28)
-
 - Enforce 100% test coverage on CI. (Pull #29)
 
 ### Changed
