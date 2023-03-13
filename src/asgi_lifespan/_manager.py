@@ -25,7 +25,7 @@ class LifespanManager:
         self._receive_called = False
         self._app_exception: typing.Optional[BaseException] = None
         self._exit_stack = AsyncExitStack()
-        self.state = {}
+        self.state: dict[str, typing.Any] = {}
 
     async def startup(self) -> None:
         await self._receive_queue.put({"type": "lifespan.startup"})
@@ -82,7 +82,7 @@ class LifespanManager:
 
             raise
 
-    async def __aenter__(self) -> None:
+    async def __aenter__(self) -> "LifespanManager":
         await self._exit_stack.__aenter__()
         await self._exit_stack.enter_async_context(
             self._concurrency_backend.run_in_background(self.run_app)

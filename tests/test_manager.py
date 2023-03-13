@@ -223,8 +223,8 @@ async def test_lifespan_not_supported(app: typing.Callable) -> None:
 
 
 @pytest.mark.usefixtures("concurrency")
-async def test_lifespan_state_async_cm():
-    async def app(scope, receive, send):
+async def test_lifespan_state_async_cm() -> None:
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
         message = await receive()
         assert message["type"] == "lifespan.startup"
         await send({"type": "lifespan.startup.complete"})
