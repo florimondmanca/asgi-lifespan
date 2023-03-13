@@ -94,9 +94,8 @@ async def test_lifespan_manager(
         elif shutdown_exception is not None:
             stack.enter_context(pytest.raises(shutdown_exception))
 
-        async with LifespanManager(app) as ctx:
+        async with LifespanManager(app):
             # NOTE: this block should not execute in case of startup exception.
-            # assert ctx is None
             assert not startup_exception
             assert received_lifespan_events == ["lifespan.startup"]
             assert sent_lifespan_events == ["lifespan.startup.complete"]
@@ -234,5 +233,5 @@ async def test_lifespan_state_async_cm():
         assert message["type"] == "lifespan.shutdown"
         await send({"type": "lifespan.shutdown.complete"})
 
-    async with LifespanManager(app) as l:
-        assert l.state["foo"] == 123
+    async with LifespanManager(app) as lsm:
+        assert lsm.state["foo"] == 123

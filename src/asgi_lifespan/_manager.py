@@ -59,7 +59,7 @@ class LifespanManager:
             self._shutdown_complete.set()
 
     async def run_app(self) -> None:
-        scope: Scope = {"type": "lifespan",  "state": self.state}
+        scope: Scope = {"type": "lifespan", "state": self.state}
 
         try:
             await self.app(scope, self.receive, self.send)
