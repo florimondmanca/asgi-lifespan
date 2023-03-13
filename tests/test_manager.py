@@ -96,7 +96,7 @@ async def test_lifespan_manager(
 
         async with LifespanManager(app) as ctx:
             # NOTE: this block should not execute in case of startup exception.
-            assert ctx is None
+            # assert ctx is None
             assert not startup_exception
             assert received_lifespan_events == ["lifespan.startup"]
             assert sent_lifespan_events == ["lifespan.startup.complete"]
@@ -221,3 +221,18 @@ async def test_lifespan_not_supported(app: typing.Callable) -> None:
     with pytest.raises(LifespanNotSupported):
         async with LifespanManager(app):
             pass  # pragma: no cover
+
+
+@pytest.mark.usefixtures("concurrency")
+async def test_lifespan_state_async_cm():
+    async def app(scope, receive, send):
+        message = await receive()
+        assert message["type"] == "lifespan.startup"
+        await send({"type": "lifespan.startup.complete"})
+        scope["state"]["foo"] = 123
+        message = await receive()
+        assert message["type"] == "lifespan.shutdown"
+        await send({"type": "lifespan.shutdown.complete"})
+
+    async with LifespanManager(app) as l:
+        assert l.state["foo"] == 123

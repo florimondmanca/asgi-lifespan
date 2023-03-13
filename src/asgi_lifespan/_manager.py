@@ -25,6 +25,7 @@ class LifespanManager:
         self._receive_called = False
         self._app_exception: typing.Optional[BaseException] = None
         self._exit_stack = AsyncExitStack()
+        self.state = {}
 
     async def startup(self) -> None:
         await self._receive_queue.put({"type": "lifespan.startup"})
@@ -58,7 +59,7 @@ class LifespanManager:
             self._shutdown_complete.set()
 
     async def run_app(self) -> None:
-        scope: Scope = {"type": "lifespan"}
+        scope: Scope = {"type": "lifespan",  "state": self.state}
 
         try:
             await self.app(scope, self.receive, self.send)
@@ -66,7 +67,7 @@ class LifespanManager:
             self._app_exception = exc
 
             # We crashed, so don't make '.startup()' and '.shutdown()'
-            # wait unnecesarily (or they'll timeout).
+            # wait unnecessarily (or they'll timeout).
             self._startup_complete.set()
             self._shutdown_complete.set()
 
@@ -88,6 +89,7 @@ class LifespanManager:
         )
         try:
             await self.startup()
+            return self
         except BaseException:
             await self._exit_stack.aclose()
             raise
