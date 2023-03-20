@@ -16,5 +16,5 @@ pytest==7.*
 pytest-asyncio==0.18.*
 pytest-cov
 pytest-trio==0.8.*
-starlette==0.21.*
+starlette==0.26.*
 trio==0.22.*

@@ -1,12 +1,16 @@
 import contextlib
 import typing
 
+import httpx as httpx
 import pytest
-from starlette.routing import Router
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, Response
+from starlette.routing import Route, Router
 
 from asgi_lifespan import LifespanManager, LifespanNotSupported
 from asgi_lifespan._concurrency import detect_concurrency_backend
-from asgi_lifespan._types import Message, Receive, Scope, Send
+from asgi_lifespan._types import ASGIApp, Message, Receive, Scope, Send
 
 from . import concurrency
 from .compat import ExceptionGroup
@@ -94,9 +98,8 @@ async def test_lifespan_manager(
         elif shutdown_exception is not None:
             stack.enter_context(pytest.raises(shutdown_exception))
 
-        async with LifespanManager(app) as ctx:
+        async with LifespanManager(app):
             # NOTE: this block should not execute in case of startup exception.
-            assert ctx is None
             assert not startup_exception
             assert received_lifespan_events == ["lifespan.startup"]
             assert sent_lifespan_events == ["lifespan.startup.complete"]
@@ -221,3 +224,23 @@ async def test_lifespan_not_supported(app: typing.Callable) -> None:
     with pytest.raises(LifespanNotSupported):
         async with LifespanManager(app):
             pass  # pragma: no cover
+
+
+@pytest.mark.usefixtures("concurrency")
+async def test_lifespan_state_async_cm() -> None:
+    @contextlib.asynccontextmanager
+    async def lifespan(_app: ASGIApp) -> typing.AsyncGenerator:
+        yield {"foo": 1}
+
+    async def get(request: Request) -> Response:
+        assert request.state.foo == 1
+        request.state.foo = 2
+        return PlainTextResponse(f"Hello {request.state.foo}")
+
+    app = Starlette(lifespan=lifespan, routes=[Route("/get", get)])
+
+    async with LifespanManager(app) as lsm:
+        async with httpx.AsyncClient(app=lsm, base_url="http://io.io") as client:
+            response = await client.get("/get")
+            assert response.status_code == 200
+            assert response.text == "Hello 2"
