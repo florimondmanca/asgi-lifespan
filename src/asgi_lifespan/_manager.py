@@ -4,7 +4,15 @@ from types import TracebackType
 
 from ._concurrency import detect_concurrency_backend
 from ._exceptions import LifespanNotSupported
-from ._types import ASGIApp, Message, Scope
+from ._types import ASGIApp, Message, Receive, Scope, Send
+
+
+def state_middleware(app: ASGIApp, state: typing.Dict[str, typing.Any]) -> ASGIApp:
+    async def app_with_state(scope: Scope, receive: Receive, send: Send) -> None:
+        scope["state"] = state
+        await app(scope, receive, send)
+
+    return app_with_state
 
 
 class LifespanManager:
@@ -14,7 +22,8 @@ class LifespanManager:
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
     ) -> None:
-        self.app = app
+        self._state: typing.Dict[str, typing.Any] = {}
+        self.app = state_middleware(app, self._state)
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
 
@@ -66,7 +75,7 @@ class LifespanManager:
             self._app_exception = exc
 
             # We crashed, so don't make '.startup()' and '.shutdown()'
-            # wait unnecesarily (or they'll timeout).
+            # wait unnecessarily (or they'll timeout).
             self._startup_complete.set()
             self._shutdown_complete.set()
 
@@ -81,13 +90,14 @@ class LifespanManager:
 
             raise
 
-    async def __aenter__(self) -> None:
+    async def __aenter__(self) -> "LifespanManager":
         await self._exit_stack.__aenter__()
         await self._exit_stack.enter_async_context(
             self._concurrency_backend.run_in_background(self.run_app)
         )
         try:
             await self.startup()
+            return self
         except BaseException:
             await self._exit_stack.aclose()
             raise
