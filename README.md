@@ -138,9 +138,9 @@ OK
 
 ### Accessing state
 
-LifespanManager provisions a lifespan state (see [spec docs](https://asgi.readthedocs.io/en/latest/specs/lifespan.html#lifespan-state)), mimicking an ASGI server that would support this feature.
+`LifespanManager` provisions a [lifespan state](https://asgi.readthedocs.io/en/latest/specs/lifespan.html#lifespan-state) which persists data from the lifespan cycle for use in request/response handling.
 
-For your app to be aware of it, access the app as `manager.app` when inside the context manager.
+For your app to be aware of it, be sure to use `manager.app` instead of the `app` itself when inside the context manager.
 
 For example if using HTTPX as an async test client:
 
@@ -186,6 +186,10 @@ async with LifespanManager(app):
 - `app` (`Callable`): an ASGI application.
 - `startup_timeout` (`Optional[float]`, defaults to 5): maximum number of seconds to wait for the application to startup. Use `None` for no timeout.
 - `shutdown_timeout` (`Optional[float]`, defaults to 5): maximum number of seconds to wait for the application to shutdown. Use `None` for no timeout.
+
+**Yields**
+
+- `manager`: the `LifespanManager` itself. In case you use [lifespan state](https://asgi.readthedocs.io/en/latest/specs/lifespan.html#lifespan-state), use `async with LifespanManager(app) as manager: ...` then access `manager.app` to get a reference to the state-aware app.
 
 **Raises**
 
