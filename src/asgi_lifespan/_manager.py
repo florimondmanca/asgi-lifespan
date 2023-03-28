@@ -7,6 +7,14 @@ from ._exceptions import LifespanNotSupported
 from ._types import ASGIApp, Message, Receive, Scope, Send
 
 
+def state_middleware(app: ASGIApp, state: dict[str, typing.Any]) -> ASGIApp:
+    async def app_with_state(scope: Scope, receive: Receive, send: Send) -> None:
+        scope["state"] = state
+        await app(scope, receive, send)
+
+    return app_with_state
+
+
 class LifespanManager:
     def __init__(
         self,
@@ -14,7 +22,8 @@ class LifespanManager:
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
     ) -> None:
-        self.app = app
+        self._state: dict[str, typing.Any] = {}
+        self.app = state_middleware(app, self._state)
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
 
@@ -25,7 +34,6 @@ class LifespanManager:
         self._receive_called = False
         self._app_exception: typing.Optional[BaseException] = None
         self._exit_stack = AsyncExitStack()
-        self._state: dict[str, typing.Any] = {}
 
     async def startup(self) -> None:
         await self._receive_queue.put({"type": "lifespan.startup"})
@@ -82,15 +90,14 @@ class LifespanManager:
 
             raise
 
-    async def __aenter__(self) -> ASGIApp:
+    async def __aenter__(self) -> "LifespanManager":
         await self._exit_stack.__aenter__()
         await self._exit_stack.enter_async_context(
             self._concurrency_backend.run_in_background(self.run_app)
         )
         try:
             await self.startup()
-            self.app = self._include_state_middleware(self.app)
-            return self.app
+            return self
         except BaseException:
             await self._exit_stack.aclose()
             raise
@@ -104,10 +111,3 @@ class LifespanManager:
         if exc_type is None:
             self._exit_stack.push_async_callback(self.shutdown)
         return await self._exit_stack.__aexit__(exc_type, exc_value, traceback)
-
-    def _include_state_middleware(self, app: ASGIApp) -> ASGIApp:
-        async def state_injector(scope: Scope, receive: Receive, send: Send) -> None:
-            scope["state"] = self._state
-            await app(scope, receive, send)
-
-        return state_injector
