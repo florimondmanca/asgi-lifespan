@@ -7,7 +7,7 @@ from ._exceptions import LifespanNotSupported
 from ._types import ASGIApp, Message, Receive, Scope, Send
 
 
-def state_middleware(app: ASGIApp, state: dict[str, typing.Any]) -> ASGIApp:
+def state_middleware(app: ASGIApp, state: typing.Dict[str, typing.Any]) -> ASGIApp:
     async def app_with_state(scope: Scope, receive: Receive, send: Send) -> None:
         scope["state"] = state
         await app(scope, receive, send)
@@ -22,7 +22,7 @@ class LifespanManager:
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
     ) -> None:
-        self._state: dict[str, typing.Any] = {}
+        self._state: typing.Dict[str, typing.Any] = {}
         self.app = state_middleware(app, self._state)
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
