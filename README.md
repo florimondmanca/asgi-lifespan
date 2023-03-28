@@ -29,18 +29,23 @@ pip install 'asgi-lifespan==2.*'
 
 ```python
 # example.py
+from contextlib import asynccontextmanager
 from asgi_lifespan import LifespanManager
 from starlette.applications import Starlette
 
 # Example lifespan-capable ASGI app. Any ASGI app that supports
 # the lifespan protocol will do, e.g. FastAPI, Quart, Responder, ...
-app = Starlette(
-    on_startup=[lambda: print("Starting up!")],
-    on_shutdown=[lambda: print("Shutting down!")],
-)
+
+@asynccontextmanager
+async def lifespan(app):
+    print("Starting up!")
+    yield
+    print("Shutting down!")
+
+app = Starlette(lifespan=lifespan)
 
 async def main():
-    async with LifespanManager(app):
+    async with LifespanManager(app) as manager:
         print("We're in!")
 
 # On asyncio:
@@ -73,6 +78,7 @@ pip install asgi-lifespan httpx starlette pytest pytest-asyncio
 
 ```python
 # test_app.py
+from contextlib import asynccontextmanager
 import httpx
 import pytest
 import pytest_asyncio
@@ -84,10 +90,10 @@ from starlette.routing import Route
 
 @pytest_asyncio.fixture
 async def app():
-    async def startup():
+    @asynccontextmanager
+    async def lifespan(app):
         print("Starting up")
-
-    async def shutdown():
+        yield
         print("Shutting down")
 
     async def home(request):
@@ -95,13 +101,12 @@ async def app():
 
     app = Starlette(
         routes=[Route("/", home)],
-        on_startup=[startup],
-        on_shutdown=[shutdown]
+        lifespan=lifespan,
     )
 
-    async with LifespanManager(app):
+    async with LifespanManager(app) as manager:
         print("We're in!")
-        yield app
+        yield manager.app
 
 
 @pytest_asyncio.fixture
@@ -174,7 +179,7 @@ More precisely:
 **Example**
 
 ```python
-async with LifespanManager(app):
+async with LifespanManager(app) as manager:
     # 'app' was started up.
     ...
 
@@ -189,7 +194,7 @@ async with LifespanManager(app):
 
 **Yields**
 
-- `manager`: the `LifespanManager` itself. In case you use [lifespan state](https://asgi.readthedocs.io/en/latest/specs/lifespan.html#lifespan-state), use `async with LifespanManager(app) as manager: ...` then access `manager.app` to get a reference to the state-aware app.
+- `manager` (`LifespanManager`): the `LifespanManager` itself. In case you use [lifespan state](https://asgi.readthedocs.io/en/latest/specs/lifespan.html#lifespan-state), use `async with LifespanManager(app) as manager: ...` then access `manager.app` to get a reference to the state-aware app.
 
 **Raises**
 
