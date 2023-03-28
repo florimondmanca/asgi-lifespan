@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 2.0.0 (November 11, 2022)
+## 2.1.0 - 2023-03-28
+
+### Added
+
+- Add support for lifespan state. (Pull #59)
+
+## 2.0.0 - 2022-11-11
 
 ### Removed
 
@@ -19,13 +25,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Ensure compatibility with mypy 0.990+, which made `no_implicit_optional` the default. (Pull #53 - Thanks @AllSeeingEyeTolledEweSew)
 
-## 1.0.1 (June 8, 2020)
+## 1.0.1 - 2020-06-08
 
 ### Fixed
 
 - Update development status to `5 - Production/Stable`. (Pull #32)
 
-## 1.0.0 (February 2, 2020)
+## 1.0.0 - 2020-02-02
 
 ### Removed
 
@@ -40,14 +46,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Enforce importing from the top-level package by switching to private internal modules. (Pull #26)
 
-## 0.6.0 (November 29, 2019)
+## 0.6.0 - 2019-11-29
 
 ### Changed
 
 - Move `Lifespan` to the `lifespan` module. (Pull #21)
 - Refactor `LifespanManager` to drop dependency on `asynccontextmanager` on 3.6. (Pull #20)
 
-## 0.5.0 (November 29, 2019)
+## 0.5.0 - 2019-11-29
 
 - Enter Beta development status.
 
@@ -63,13 +69,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Use custom concurrency backends instead of `anyio` for asyncio and trio support. (Pull #18)
 
-## 0.4.2 (October 6, 2019)
+## 0.4.2 - 2019-10-06
 
 ### Fixed
 
 - Ensure `py.typed` is bundled with the package so that type checkers can detect type annotations. (Pull #16)
 
-## 0.4.1 (September 29, 2019)
+## 0.4.1 - 2019-09-29
 
 ### Fixed
 
@@ -77,41 +83,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Exceptions raised in the context manager body or during shutdown are now properly propagated.
   - Unsupported lifespan is now also detected when the app calls `send()` before calling having called `receive()` at least once.
 
-## 0.4.0 (September 29, 2019)
+## 0.4.0 - 2019-09-29
 
 - Enter Alpha development status.
 
-## 0.3.1 (September 29, 2019)
+## 0.3.1 - 2019-09-29
 
 ### Added
 
 - Add configurable timeouts to `LifespanManager`. (Pull #10)
 
-## 0.3.0 (September 29, 2019)
+## 0.3.0 - 2019-09-29
 
 ### Added
 
 - Add `LifespanManager` for sending lifespan events into an ASGI app. (Pull #5)
 
-## 0.2.0 (September 28, 2019)
+## 0.2.0 - 2019-09-28
 
 ### Added
 
 - Add `LifespanMiddleware`, an ASGI middleware to add lifespan support to an ASGI app. (Pull #9)
 
-## 0.1.0 (September 28, 2019)
+## 0.1.0 - 2019-09-28
 
 ### Added
 
 - Add `Lifespan`, an ASGI app implementing the lifespan protocol with event handler registration support. (Pull #7)
 
-## 0.0.2 (September 28, 2019)
+## 0.0.2 - 2019-09-28
 
 ### Fixed
 
 - Installation from PyPI used to fail due to missing `MANIFEST.in`.
 
-## 0.0.1 (September 28, 2019)
+## 0.0.1 - 2019-09-28
 
 ### Added
 
