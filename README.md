@@ -135,11 +135,12 @@ OK
 
 ======================= 1 passed in 0.88s =======================
 ```
+
 ### Accessing state
 
 LifespanManager provisions a lifespan state (see [spec docs](https://asgi.readthedocs.io/en/latest/specs/lifespan.html#lifespan-state)), mimicking an ASGI server that would support this feature.
 
-For your app to be aware of it, access the app as manager.app when inside the context manager.
+For your app to be aware of it, access the app as `manager.app` when inside the context manager.
 
 For example if using HTTPX as an async test client:
 

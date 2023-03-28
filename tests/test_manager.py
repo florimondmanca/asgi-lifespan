@@ -239,8 +239,8 @@ async def test_lifespan_state_async_cm() -> None:
 
     app = Starlette(lifespan=lifespan, routes=[Route("/get", get)])
 
-    async with LifespanManager(app) as lsm:
-        async with httpx.AsyncClient(app=lsm.app, base_url="http://io.io") as client:
+    async with LifespanManager(app) as manager:
+        async with httpx.AsyncClient(app=manager.app, base_url="http://example.org") as client:
             response = await client.get("/get")
             assert response.status_code == 200
             assert response.text == "Hello 2"
