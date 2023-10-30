@@ -33,6 +33,7 @@ stages:
             py37:
             py38:
             py311:
+            py312:
               coverage: true
 
   - stage: publish
