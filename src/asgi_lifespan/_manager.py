@@ -22,8 +22,8 @@ class LifespanManager:
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
     ) -> None:
-        self._state: typing.Dict[str, typing.Any] = {}
-        self.app = state_middleware(app, self._state)
+        self.app_state: typing.Dict[str, typing.Any] = {}
+        self.app = state_middleware(app, self.app_state)
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
 
