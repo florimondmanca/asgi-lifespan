@@ -37,6 +37,8 @@ version = { attr = "asgi_lifespan.__version__" }
 readme = { file = ["README.md", "CHANGELOG.md"], content-type = "text/markdown" }
 
 [tool.ruff]
-select = ["E", "F", "I"]
 line-length = 88
 src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
