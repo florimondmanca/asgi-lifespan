@@ -1,13 +1,13 @@
-import typing
 from contextlib import AsyncExitStack
 from types import TracebackType
+from typing import Any, Type
 
 from ._concurrency import detect_concurrency_backend
 from ._exceptions import LifespanNotSupported
 from ._types import ASGIApp, Message, Receive, Scope, Send
 
 
-def state_middleware(app: ASGIApp, state: typing.Dict[str, typing.Any]) -> ASGIApp:
+def state_middleware(app: ASGIApp, state: dict[str, Any]) -> ASGIApp:
     async def app_with_state(scope: Scope, receive: Receive, send: Send) -> None:
         scope["state"] = state
         await app(scope, receive, send)
@@ -19,10 +19,10 @@ class LifespanManager:
     def __init__(
         self,
         app: ASGIApp,
-        startup_timeout: typing.Optional[float] = 5,
-        shutdown_timeout: typing.Optional[float] = 5,
+        startup_timeout: float | None = 5,
+        shutdown_timeout: float | None = 5,
     ) -> None:
-        self._state: typing.Dict[str, typing.Any] = {}
+        self._state: dict[str, Any] = {}
         self.app = state_middleware(app, self._state)
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
@@ -32,7 +32,7 @@ class LifespanManager:
         self._shutdown_complete = self._concurrency_backend.create_event()
         self._receive_queue = self._concurrency_backend.create_queue(capacity=2)
         self._receive_called = False
-        self._app_exception: typing.Optional[BaseException] = None
+        self._app_exception: BaseException | None = None
         self._exit_stack = AsyncExitStack()
 
     async def startup(self) -> None:
@@ -90,7 +90,7 @@ class LifespanManager:
 
             raise
 
-    async def __aenter__(self) -> "LifespanManager":
+    async def __aenter__(self) -> Self:
         await self._exit_stack.__aenter__()
         await self._exit_stack.enter_async_context(
             self._concurrency_backend.run_in_background(self.run_app)
@@ -104,10 +104,10 @@ class LifespanManager:
 
     async def __aexit__(
         self,
-        exc_type: typing.Optional[typing.Type[BaseException]] = None,
-        exc_value: typing.Optional[BaseException] = None,
-        traceback: typing.Optional[TracebackType] = None,
-    ) -> typing.Optional[bool]:
+        exc_type: Type[BaseException] | None = None,
+        exc_value: BaseException | None = None,
+        traceback: TracebackType | None = None,
+    ) -> bool | None:
         if exc_type is None:
             self._exit_stack.push_async_callback(self.shutdown)
         return await self._exit_stack.__aexit__(exc_type, exc_value, traceback)

@@ -5,7 +5,7 @@ required as part of the ConcurrencyBackend API.
 
 import asyncio
 import functools
-import typing
+from typing import Awaitable, Callable
 
 import trio
 
@@ -34,8 +34,8 @@ async def _sleep_trio(concurrency_backend: ConcurrencyBackend, seconds: float) -
 @functools.singledispatch
 async def run_and_move_on_after(
     concurrency_backend: ConcurrencyBackend,
-    seconds: typing.Optional[float],
-    coroutine: typing.Callable[[], typing.Awaitable[None]],
+    seconds: float | None,
+    coroutine: Callable[[], Awaitable[None]],
 ) -> bool:
     raise NotImplementedError  # pragma: no cover
 
@@ -43,8 +43,8 @@ async def run_and_move_on_after(
 @run_and_move_on_after.register(AsyncioBackend)
 async def _run_and_move_on_after_asyncio(
     concurrency_backend: ConcurrencyBackend,
-    seconds: typing.Optional[float],
-    coroutine: typing.Callable[[], typing.Awaitable[None]],
+    seconds: float | None,
+    coroutine: Callable[[], Awaitable[None]],
 ) -> bool:
     try:
         await asyncio.wait_for(coroutine(), timeout=seconds)
@@ -57,8 +57,8 @@ async def _run_and_move_on_after_asyncio(
 @run_and_move_on_after.register(TrioBackend)
 async def _run_and_move_on_after_trio(
     concurrency_backend: ConcurrencyBackend,
-    seconds: typing.Optional[float],
-    coroutine: typing.Callable[[], typing.Awaitable[None]],
+    seconds: float | None,
+    coroutine: Callable[[], Awaitable[None]],
 ) -> bool:
     with trio.move_on_after(seconds if seconds is not None else float("inf")):
         await coroutine()

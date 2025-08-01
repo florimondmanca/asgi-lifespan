@@ -1,6 +1,6 @@
-import typing
-
 import pytest
+
+from typing import Any
 
 
 @pytest.fixture(
@@ -9,5 +9,5 @@ import pytest
         pytest.param("trio", marks=pytest.mark.trio),
     ]
 )
-def concurrency(request: typing.Any) -> str:
+def concurrency(request: Any) -> str:
     return request.param

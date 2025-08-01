@@ -1,4 +1,4 @@
-import typing
+from typing import Any, AsyncContextManager, Awaitable, Callable
 
 
 class BaseEvent:
@@ -10,10 +10,10 @@ class BaseEvent:
 
 
 class BaseQueue:
-    async def get(self) -> typing.Any:
+    async def get(self) -> Any:
         raise NotImplementedError  # pragma: no cover
 
-    async def put(self, value: typing.Any) -> None:
+    async def put(self, value: Any) -> None:
         raise NotImplementedError  # pragma: no cover
 
 
@@ -26,12 +26,12 @@ class ConcurrencyBackend:
 
     async def run_and_fail_after(
         self,
-        seconds: typing.Optional[float],
-        coroutine: typing.Callable[[], typing.Awaitable[None]],
+        seconds: float | None,
+        coroutine: Callable[[], Awaitable[None]],
     ) -> None:
         raise NotImplementedError  # pragma: no cover
 
     def run_in_background(
-        self, coroutine: typing.Callable[[], typing.Awaitable[None]]
-    ) -> typing.AsyncContextManager:
+        self, coroutine: Callable[[], Awaitable[None]]
+    ) -> AsyncContextManager:
         raise NotImplementedError  # pragma: no cover

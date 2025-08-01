@@ -1,5 +1,5 @@
 import contextlib
-import typing
+from typing import AsyncGenerator, Callable, Type
 
 import httpx as httpx
 import pytest
@@ -34,9 +34,9 @@ class ShutdownFailed(Exception):
 @pytest.mark.parametrize("shutdown_exception", (None, ShutdownFailed))
 async def test_lifespan_manager(
     concurrency: str,
-    startup_exception: typing.Optional[typing.Type[BaseException]],
-    body_exception: typing.Optional[typing.Type[BaseException]],
-    shutdown_exception: typing.Optional[typing.Type[BaseException]],
+    startup_exception: Type[BaseException] | None,
+    body_exception: Type[BaseException] | None,
+    shutdown_exception: Type[BaseException] | None,
 ) -> None:
     # Setup failing event handlers.
 
@@ -63,8 +63,8 @@ async def test_lifespan_manager(
 
     # Set up spying on exchanged ASGI events.
 
-    received_lifespan_events: typing.List[str] = []
-    sent_lifespan_events: typing.List[str] = []
+    received_lifespan_events: list[str] = []
+    sent_lifespan_events: list[str] = []
 
     async def app(scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "lifespan"
@@ -133,7 +133,7 @@ async def test_lifespan_manager(
 
 
 async def slow_startup(
-    scope: dict, receive: typing.Callable, send: typing.Callable
+    scope: dict, receive: Callable, send: Callable
 ) -> None:
     concurrency_backend = detect_concurrency_backend()
     message = await receive()
@@ -143,7 +143,7 @@ async def slow_startup(
 
 
 async def slow_shutdown(
-    scope: dict, receive: typing.Callable, send: typing.Callable
+    scope: dict, receive: Callable, send: Callable
 ) -> None:
     concurrency_backend = detect_concurrency_backend()
 
@@ -159,7 +159,7 @@ async def slow_shutdown(
 
 @pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
-async def test_lifespan_timeout(app: typing.Callable) -> None:
+async def test_lifespan_timeout(app: Callable) -> None:
     with pytest.raises(TimeoutError):
         async with LifespanManager(app, startup_timeout=0.01, shutdown_timeout=0.01):
             pass
@@ -167,7 +167,7 @@ async def test_lifespan_timeout(app: typing.Callable) -> None:
 
 @pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
-async def test_lifespan_no_timeout(app: typing.Callable) -> None:
+async def test_lifespan_no_timeout(app: Callable) -> None:
     async def main() -> None:
         async with LifespanManager(app, startup_timeout=None, shutdown_timeout=None):
             pass
@@ -178,14 +178,14 @@ async def test_lifespan_no_timeout(app: typing.Callable) -> None:
 
 
 async def http_only(
-    scope: dict, receive: typing.Callable, send: typing.Callable
+    scope: dict, receive: Callable, send: Callable
 ) -> None:
     assert scope["type"] == "http"
     # ...
 
 
 async def http_no_assert(
-    scope: dict, receive: typing.Callable, send: typing.Callable
+    scope: dict, receive: Callable, send: Callable
 ) -> None:
     await send(
         {
@@ -198,7 +198,7 @@ async def http_no_assert(
 
 
 async def http_no_assert_before_receive_request(
-    scope: dict, receive: typing.Callable, send: typing.Callable
+    scope: dict, receive: Callable, send: Callable
 ) -> None:
     message = await receive()
     assert message["type"] == "http.request"
@@ -220,7 +220,7 @@ async def http_no_assert_before_receive_request(
         ),
     ],
 )
-async def test_lifespan_not_supported(app: typing.Callable) -> None:
+async def test_lifespan_not_supported(app: Callable) -> None:
     with pytest.raises(LifespanNotSupported):
         async with LifespanManager(app):
             pass  # pragma: no cover
@@ -229,7 +229,7 @@ async def test_lifespan_not_supported(app: typing.Callable) -> None:
 @pytest.mark.usefixtures("concurrency")
 async def test_lifespan_state_async_cm() -> None:
     @contextlib.asynccontextmanager
-    async def lifespan(_app: ASGIApp) -> typing.AsyncGenerator:
+    async def lifespan(_app: ASGIApp) -> AsyncGenerator:
         yield {"foo": 1}
 
     async def get(request: Request) -> Response:

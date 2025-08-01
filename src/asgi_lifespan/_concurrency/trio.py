@@ -1,5 +1,5 @@
 import types
-import typing
+from typing import Any, AsyncContextManager, Awaitable, Callable, Type
 
 import trio
 
@@ -24,10 +24,10 @@ class TrioQueue(BaseQueue):
             max_buffer_size=capacity
         )
 
-    async def get(self) -> typing.Any:
+    async def get(self) -> Any:
         return await self._receive_channel.receive()
 
-    async def put(self, value: typing.Any) -> None:
+    async def put(self, value: Any) -> None:
         await self._send_channel.send(value)
 
 
@@ -40,8 +40,8 @@ class TrioBackend(ConcurrencyBackend):
 
     async def run_and_fail_after(
         self,
-        seconds: typing.Optional[float],
-        coroutine: typing.Callable[[], typing.Awaitable[None]],
+        seconds: float | None,
+        coroutine: Callable[[], Awaitable[None]],
     ) -> None:
         with trio.move_on_after(seconds if seconds is not None else float("inf")):
             await coroutine()
@@ -49,13 +49,13 @@ class TrioBackend(ConcurrencyBackend):
         raise TimeoutError
 
     def run_in_background(
-        self, coroutine: typing.Callable[[], typing.Awaitable[None]]
-    ) -> typing.AsyncContextManager:
+        self, coroutine: Callable[[], Awaitable[None]]
+    ) -> AsyncContextManager:
         return Background(coroutine)
 
 
 class Background:
-    def __init__(self, coroutine: typing.Callable[[], typing.Awaitable[None]]) -> None:
+    def __init__(self, coroutine: Callable[[], Awaitable[None]]) -> None:
         self.coroutine = coroutine
         self._exit_stack = AsyncExitStack()
 
@@ -65,8 +65,8 @@ class Background:
 
     async def __aexit__(
         self,
-        exc_type: typing.Optional[typing.Type[BaseException]] = None,
-        exc_value: typing.Optional[BaseException] = None,
-        traceback: typing.Optional[types.TracebackType] = None,
+        exc_type: Type[BaseException] | None = None,
+        exc_value: BaseException | None = None,
+        traceback: types.TracebackType | None = None,
     ) -> None:
         await self._exit_stack.__aexit__(exc_type, exc_value, traceback)
