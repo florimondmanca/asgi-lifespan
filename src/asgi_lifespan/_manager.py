@@ -22,8 +22,8 @@ class LifespanManager:
         startup_timeout: typing.Optional[float] = 5,
         shutdown_timeout: typing.Optional[float] = 5,
     ) -> None:
-        self.app_state: typing.Dict[str, typing.Any] = {}
-        self.app = state_middleware(app, self.app_state)
+        self._state: typing.Dict[str, typing.Any] = {}
+        self.app = state_middleware(app, self._state)
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
 
@@ -89,6 +89,10 @@ class LifespanManager:
                 ) from exc
 
             raise
+
+    @property
+    def app_state(self) -> typing.Dict[str, typing.Any]:
+        return self._state
 
     async def __aenter__(self) -> "LifespanManager":
         await self._exit_stack.__aenter__()
