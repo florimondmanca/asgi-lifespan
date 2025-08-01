@@ -241,7 +241,7 @@ async def test_lifespan_state_async_cm() -> None:
 
     async with LifespanManager(app) as manager:
         async with httpx.AsyncClient(
-            app=manager.app, base_url="http://example.org"
+            transport=httpx.ASGITransport(app=manager.app), base_url="http://example.org"
         ) as client:
             response = await client.get("/get")
             assert response.status_code == 200
