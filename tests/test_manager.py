@@ -3,6 +3,7 @@ import typing
 
 import httpx as httpx
 import pytest
+from pytest import RaisesGroup
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response
@@ -84,9 +85,9 @@ async def test_lifespan_manager(
         # Set up expected raised exceptions.
         if startup_exception is not None:
             stack.enter_context(
-                pytest.raises(
-                    ExceptionGroup if concurrency == "trio" else startup_exception
-                )
+                RaisesGroup(startup_exception)
+                if concurrency == "trio"
+                else pytest.raises(startup_exception)
             )
         elif body_exception is not None:
             if shutdown_exception is not None:
@@ -99,15 +100,15 @@ async def test_lifespan_manager(
                 )
             else:
                 stack.enter_context(
-                    pytest.raises(
-                        ExceptionGroup if concurrency == "trio" else body_exception
-                    )
+                    RaisesGroup(body_exception)
+                    if concurrency == "trio"
+                    else pytest.raises(body_exception)
                 )
         elif shutdown_exception is not None:
             stack.enter_context(
-                pytest.raises(
-                    ExceptionGroup if concurrency == "trio" else shutdown_exception
-                )
+                RaisesGroup(shutdown_exception)
+                if concurrency == "trio"
+                else pytest.raises(shutdown_exception)
             )
 
         async with LifespanManager(app):
