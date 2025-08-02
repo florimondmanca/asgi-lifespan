@@ -172,8 +172,12 @@ async def slow_shutdown(
 
 @pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
-async def test_lifespan_timeout(app: typing.Callable) -> None:
-    with pytest.raises(TimeoutError):
+async def test_lifespan_timeout(concurrency: str, app: typing.Callable) -> None:
+    expected_exceptions = (
+        (TimeoutError, ExceptionGroup) if concurrency == "trio" 
+        else TimeoutError
+    )
+    with pytest.raises(expected_exceptions):
         async with LifespanManager(app, startup_timeout=0.01, shutdown_timeout=0.01):
             pass
 
@@ -233,8 +237,12 @@ async def http_no_assert_before_receive_request(
         ),
     ],
 )
-async def test_lifespan_not_supported(app: typing.Callable) -> None:
-    with pytest.raises(LifespanNotSupported):
+async def test_lifespan_not_supported(concurrency: str, app: typing.Callable) -> None:
+    expected_exceptions = (
+        ExceptionGroup if concurrency == "trio" 
+        else LifespanNotSupported
+    )
+    with pytest.raises(expected_exceptions):
         async with LifespanManager(app):
             pass  # pragma: no cover
 
