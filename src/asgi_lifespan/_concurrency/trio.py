@@ -2,6 +2,7 @@ import types
 import typing
 
 import trio
+from trio import MemoryReceiveChannel, MemorySendChannel
 
 from .._compat import AsyncExitStack
 from .base import BaseEvent, BaseQueue, ConcurrencyBackend
@@ -20,6 +21,9 @@ class TrioEvent(BaseEvent):
 
 class TrioQueue(BaseQueue):
     def __init__(self, capacity: int) -> None:
+        self._send_channel: MemorySendChannel
+        self._receive_channel: MemoryReceiveChannel
+
         self._send_channel, self._receive_channel = trio.open_memory_channel(
             max_buffer_size=capacity
         )
