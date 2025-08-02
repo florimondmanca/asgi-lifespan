@@ -83,7 +83,11 @@ async def test_lifespan_manager(
     with contextlib.ExitStack() as stack:
         # Set up expected raised exceptions.
         if startup_exception is not None:
-            stack.enter_context(pytest.raises(startup_exception))
+            stack.enter_context(
+                pytest.raises(
+                    ExceptionGroup if concurrency == "trio" else startup_exception
+                )
+            )
         elif body_exception is not None:
             if shutdown_exception is not None:
                 # Trio now raises the new `ExceptionGroup` in case
@@ -94,9 +98,17 @@ async def test_lifespan_manager(
                     )
                 )
             else:
-                stack.enter_context(pytest.raises(body_exception))
+                stack.enter_context(
+                    pytest.raises(
+                        ExceptionGroup if concurrency == "trio" else body_exception
+                    )
+                )
         elif shutdown_exception is not None:
-            stack.enter_context(pytest.raises(shutdown_exception))
+            stack.enter_context(
+                pytest.raises(
+                    ExceptionGroup if concurrency == "trio" else shutdown_exception
+                )
+            )
 
         async with LifespanManager(app):
             # NOTE: this block should not execute in case of startup exception.
@@ -241,7 +253,8 @@ async def test_lifespan_state_async_cm() -> None:
 
     async with LifespanManager(app) as manager:
         async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=manager.app), base_url="http://example.org"
+            transport=httpx.ASGITransport(app=manager.app),
+            base_url="http://example.org",
         ) as client:
             response = await client.get("/get")
             assert response.status_code == 200
