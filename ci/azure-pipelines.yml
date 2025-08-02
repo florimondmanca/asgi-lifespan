@@ -30,7 +30,6 @@ stages:
       - template: job--python-test.yml@templates
         parameters:
           jobs:
-            py38:
             py39:
             py310:
             py311:
