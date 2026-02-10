@@ -79,7 +79,7 @@ pip install asgi-lifespan httpx starlette pytest pytest-asyncio
 ```python
 # test_app.py
 from contextlib import asynccontextmanager
-from httpx import ASGITransport, AsyncClient
+import httpx
 import pytest
 import pytest_asyncio
 from asgi_lifespan import LifespanManager
