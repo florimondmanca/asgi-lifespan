@@ -111,7 +111,7 @@ async def app():
 
 @pytest_asyncio.fixture
 async def client(app):
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://app.io") as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://app.io") as client:
         print("Client is ready")
         yield client
 
