@@ -3,6 +3,7 @@ import typing
 
 import httpx as httpx
 import pytest
+from pytest import RaisesGroup
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response
@@ -83,7 +84,11 @@ async def test_lifespan_manager(
     with contextlib.ExitStack() as stack:
         # Set up expected raised exceptions.
         if startup_exception is not None:
-            stack.enter_context(pytest.raises(startup_exception))
+            stack.enter_context(
+                RaisesGroup(startup_exception)
+                if concurrency == "trio"
+                else pytest.raises(startup_exception)
+            )
         elif body_exception is not None:
             if shutdown_exception is not None:
                 # Trio now raises the new `ExceptionGroup` in case
@@ -94,9 +99,17 @@ async def test_lifespan_manager(
                     )
                 )
             else:
-                stack.enter_context(pytest.raises(body_exception))
+                stack.enter_context(
+                    RaisesGroup(body_exception)
+                    if concurrency == "trio"
+                    else pytest.raises(body_exception)
+                )
         elif shutdown_exception is not None:
-            stack.enter_context(pytest.raises(shutdown_exception))
+            stack.enter_context(
+                RaisesGroup(shutdown_exception)
+                if concurrency == "trio"
+                else pytest.raises(shutdown_exception)
+            )
 
         async with LifespanManager(app):
             # NOTE: this block should not execute in case of startup exception.
@@ -159,8 +172,11 @@ async def slow_shutdown(
 
 @pytest.mark.usefixtures("concurrency")
 @pytest.mark.parametrize("app", [slow_startup, slow_shutdown])
-async def test_lifespan_timeout(app: typing.Callable) -> None:
-    with pytest.raises(TimeoutError):
+async def test_lifespan_timeout(concurrency: str, app: typing.Callable) -> None:
+    expected_exceptions = (
+        (TimeoutError, ExceptionGroup) if concurrency == "trio" else TimeoutError
+    )
+    with pytest.raises(expected_exceptions):
         async with LifespanManager(app, startup_timeout=0.01, shutdown_timeout=0.01):
             pass
 
@@ -220,8 +236,11 @@ async def http_no_assert_before_receive_request(
         ),
     ],
 )
-async def test_lifespan_not_supported(app: typing.Callable) -> None:
-    with pytest.raises(LifespanNotSupported):
+async def test_lifespan_not_supported(concurrency: str, app: typing.Callable) -> None:
+    expected_exceptions = (
+        ExceptionGroup if concurrency == "trio" else LifespanNotSupported
+    )
+    with pytest.raises(expected_exceptions):
         async with LifespanManager(app):
             pass  # pragma: no cover
 
@@ -241,7 +260,8 @@ async def test_lifespan_state_async_cm() -> None:
 
     async with LifespanManager(app) as manager:
         async with httpx.AsyncClient(
-            app=manager.app, base_url="http://example.org"
+            transport=httpx.ASGITransport(app=manager.app),
+            base_url="http://example.org",
         ) as client:
             response = await client.get("/get")
             assert response.status_code == 200
