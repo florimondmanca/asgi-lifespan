@@ -111,7 +111,7 @@ async def app():
 
 @pytest_asyncio.fixture
 async def client(app):
-    async with httpx.AsyncClient(app=app, base_url="http://app.io") as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://app.io") as client:
         print("Client is ready")
         yield client
 
@@ -151,7 +151,7 @@ For example if using HTTPX as an async test client:
 
 ```python
 async with LifespanManager(app) as manager:
-    async with httpx.AsyncClient(app=manager.app) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=manager.app)) as client:
         ...
 ```
 
