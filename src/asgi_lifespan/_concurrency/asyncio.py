@@ -1,7 +1,7 @@
 import asyncio
 import contextlib
-import types
-import typing
+from types import TracebackType
+from typing import Any, AsyncContextManager, Awaitable, Callable, Type
 
 from .base import BaseEvent, BaseQueue, ConcurrencyBackend
 
@@ -19,12 +19,12 @@ class AsyncioEvent(BaseEvent):
 
 class AsyncioQueue(BaseQueue):
     def __init__(self, capacity: int) -> None:
-        self._queue: asyncio.Queue[typing.Any] = asyncio.Queue(maxsize=capacity)
+        self._queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=capacity)
 
-    async def get(self) -> typing.Any:
+    async def get(self) -> Any:
         return await self._queue.get()
 
-    async def put(self, value: typing.Any) -> None:
+    async def put(self, value: Any) -> None:
         await self._queue.put(value)
 
 
@@ -37,8 +37,8 @@ class AsyncioBackend(ConcurrencyBackend):
 
     async def run_and_fail_after(
         self,
-        seconds: typing.Optional[float],
-        coroutine: typing.Callable[[], typing.Awaitable[None]],
+        seconds: float | None,
+        coroutine: Callable[[], Awaitable[None]],
     ) -> None:
         try:
             await asyncio.wait_for(coroutine(), timeout=seconds)
@@ -46,16 +46,16 @@ class AsyncioBackend(ConcurrencyBackend):
             raise TimeoutError
 
     def run_in_background(
-        self, coroutine: typing.Callable[[], typing.Awaitable[None]]
-    ) -> typing.AsyncContextManager:
+        self, coroutine: Callable[[], Awaitable[None]]
+    ) -> AsyncContextManager:
         return Background(coroutine)
 
 
 class Background:
-    def __init__(self, coroutine: typing.Callable[[], typing.Awaitable[None]]) -> None:
+    def __init__(self, coroutine: Callable[[], Awaitable[None]]) -> None:
         self.coroutine = coroutine
-        self.task: typing.Optional[asyncio.Task] = None
-        self._task_exception: typing.Optional[BaseException] = None
+        self.task: asyncio.Task | None = None
+        self._task_exception: BaseException | None = None
 
     async def __aenter__(self) -> None:
         async def run_and_silence_cancelled() -> None:
@@ -67,9 +67,9 @@ class Background:
 
     async def __aexit__(
         self,
-        exc_type: typing.Optional[typing.Type[BaseException]] = None,
-        exc_value: typing.Optional[BaseException] = None,
-        traceback: typing.Optional[types.TracebackType] = None,
+        exc_type: Type[BaseException] | None = None,
+        exc_value: BaseException | None = None,
+        traceback: TracebackType | None = None,
     ) -> None:
         assert self.task is not None
 
