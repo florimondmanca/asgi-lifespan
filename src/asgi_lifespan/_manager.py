@@ -90,6 +90,10 @@ class LifespanManager:
 
             raise
 
+    @property
+    def app_state(self) -> typing.Dict[str, typing.Any]:
+        return self._state
+
     async def __aenter__(self) -> "LifespanManager":
         await self._exit_stack.__aenter__()
         await self._exit_stack.enter_async_context(
