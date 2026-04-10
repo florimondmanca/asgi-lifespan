@@ -40,26 +40,19 @@ async def test_lifespan_manager(
 ) -> None:
     # Setup failing event handlers.
 
-    on_startup: list = []
-    on_shutdown: list = []
-
-    if startup_exception is not None:
-
-        async def startup() -> None:
+    @contextlib.asynccontextmanager
+    async def lifespan(app):
+        if startup_exception is not None:
             assert startup_exception is not None  # Please mypy.
             raise startup_exception()
+        try:
+            yield
+        finally:
+            if shutdown_exception is not None:
+                assert shutdown_exception is not None  # Please mypy.
+                raise shutdown_exception()
 
-        on_startup.append(startup)
-
-    if shutdown_exception is not None:
-
-        async def shutdown() -> None:
-            assert shutdown_exception is not None  # Please mypy.
-            raise shutdown_exception()
-
-        on_shutdown.append(shutdown)
-
-    router = Router(on_startup=on_startup, on_shutdown=on_shutdown)
+    router = Router(lifespan=lifespan)
 
     # Set up spying on exchanged ASGI events.
 
